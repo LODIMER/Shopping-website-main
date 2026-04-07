@@ -1,0 +1,3744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechParts - PC Components & Gaming Gear</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00d4ff;
+            cursor: pointer;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 0;
+        }
+
+        nav button:hover {
+            color: #00d4ff;
+        }
+
+        .nav-section {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .account-btn {
+            border: 1px solid #00d4ff;
+            border-radius: 4px;
+            padding: 0.4rem 0.75rem;
+            color: #00d4ff;
+        }
+
+        .auth-status {
+            color: #b9f3ff;
+            font-size: 0.85rem;
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .search-bar {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            width: 250px;
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #00d4ff;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-button {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 1rem;
+        }
+
+        .hero-button:hover {
+            background-color: #cc0000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .auth-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-card {
+            background: white;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .auth-card-header {
+            background: #16213e;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid #e3e3e3;
+        }
+
+        .auth-tab {
+            flex: 1;
+            border: none;
+            background: #f8f8f8;
+            padding: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .auth-tab.active {
+            background: white;
+            color: #16213e;
+            border-bottom: 2px solid #00d4ff;
+        }
+
+        .auth-form {
+            padding: 1rem;
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 0.7rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .auth-submit {
+            width: 100%;
+            background: #00a8cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toast-notification {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            background: #16213e;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.2s ease;
+            z-index: 3000;
+            max-width: 360px;
+            font-size: 0.92rem;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-card {
+            background: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-card h3 {
+            color: #16213e;
+            margin-bottom: 0.5rem;
+        }
+
+        .products-section {
+            margin-top: 4rem;
+        }
+
+        .products-section h2 {
+            color: #16213e;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #00d4ff;
+            padding-bottom: 1rem;
+        }
+
+        .product-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .filter-btn {
+            border: 1px solid #cfd8dc;
+            background: white;
+            color: #16213e;
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active {
+            background: #16213e;
+            color: white;
+            border-color: #16213e;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #16213e;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-specs {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            list-style: none;
+        }
+
+        .product-specs li {
+            padding: 0.25rem 0;
+        }
+
+        .product-specs li:before {
+            content: "✓ ";
+            color: #00d4ff;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff4444;
+        }
+
+        .old-price {
+            font-size: 0.9rem;
+            color: #999;
+            text-decoration: line-through;
+            margin-right: 0.5rem;
+        }
+
+        .add-to-cart-btn {
+            background-color: #00d4ff;
+            color: #16213e;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #00a8cc;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #ff4444;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .in-stock {
+            color: #00d4ff;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Cart Page */
+        .cart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-header {
+            font-size: 2rem;
+            color: #16213e;
+            margin-bottom: 2rem;
+            border-bottom: 3px solid #00d4ff;
+            padding-bottom: 1rem;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-cart h2 {
+            color: #16213e;
+            margin-bottom: 1rem;
+        }
+
+        .cart-items {
+            margin-bottom: 2rem;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            background: #f9f9f9;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: #16213e;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-qty {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .qty-btn {
+            background-color: #eee;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .qty-btn:hover {
+            background-color: #ddd;
+        }
+
+        .remove-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .remove-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .cart-summary {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px solid #00d4ff;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .summary-row.total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff4444;
+            border-top: 2px solid #ddd;
+            padding-top: 1rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background-color: #00d4ff;
+            color: #16213e;
+            border: none;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background-color: #00a8cc;
+        }
+
+        .checkout-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Checkout Page */
+        .checkout-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #16213e;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #16213e;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 0.5rem;
+        }
+
+        .order-summary-checkout {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+
+        .order-summary-checkout h3 {
+            color: #16213e;
+            margin-bottom: 1rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-item.total {
+            font-weight: bold;
+            color: #ff4444;
+            font-size: 1.2rem;
+            border: none;
+            padding-top: 0.75rem;
+            border-top: 2px solid #00d4ff;
+        }
+
+        .place-order-btn {
+            width: 100%;
+            background-color: #00d4ff;
+            color: #16213e;
+            border: none;
+            padding: 1rem;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .place-order-btn:hover {
+            background-color: #00a8cc;
+        }
+
+        /* Order Tracking Page */
+        .tracking-container {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .order-card {
+            border: 2px solid #00d4ff;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background: #f9f9f9;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 1rem;
+        }
+
+        .order-id {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #16213e;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .order-status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .status-processing {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-shipped {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-delivered {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-out-for-delivery {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .tracking-timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 50px;
+            height: 50px;
+            width: 2px;
+            background-color: #ccc;
+        }
+
+        .timeline-step.completed::after {
+            background-color: #00d4ff;
+        }
+
+        .timeline-dot {
+            width: 32px;
+            height: 32px;
+            background-color: #eee;
+            border: 3px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .timeline-step.completed .timeline-dot {
+            background-color: #00d4ff;
+            border-color: #00d4ff;
+            color: white;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-weight: bold;
+            color: #16213e;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-info {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #00d4ff;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        .order-items {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin-top: 1.5rem;
+        }
+
+        .order-items h4 {
+            color: #16213e;
+            margin-bottom: 1rem;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: #333;
+        }
+
+        .item-price {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .delivery-map {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0e8ff 100%);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .delivery-map h4 {
+            color: #16213e;
+            margin-bottom: 1rem;
+        }
+
+        .delivery-info {
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .estimated-delivery {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            color: #0c5460;
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: #16213e;
+            color: white;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: #00d4ff;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #444;
+            padding-top: 2rem;
+            text-align: center;
+            color: #999;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+            .header-content {
+                padding: 0 1rem;
+                gap: 0.75rem;
+            }
+
+            .search-bar {
+                width: 220px;
+            }
+
+            nav {
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 1.25rem;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2.5rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-button {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 0.75rem;
+            }
+
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: inline-flex;
+                align-self: flex-end;
+                justify-content: center;
+                align-items: center;
+                min-height: 40px;
+                min-width: 40px;
+            }
+
+            nav {
+                display: none;
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+                align-items: stretch;
+            }
+
+            nav.open {
+                display: flex;
+            }
+
+            .nav-section {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            nav button,
+            .account-btn {
+                min-height: 42px;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .auth-status {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+
+            .cart-icon {
+                align-self: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .categories {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .products-section {
+                margin-top: 2rem;
+            }
+
+            .products-section h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .product-filters {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 0.35rem;
+            }
+
+            .filter-btn {
+                white-space: nowrap;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .product-image {
+                height: 160px;
+                font-size: 3rem;
+            }
+
+            .product-info {
+                padding: 1rem;
+            }
+
+            .product-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .add-to-cart-btn {
+                width: 100%;
+            }
+
+            .cart-container,
+            .checkout-container,
+            .tracking-container,
+            .order-card {
+                padding: 1rem;
+            }
+
+            .cart-header {
+                font-size: 1.5rem;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .cart-item-qty {
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .cart-summary {
+                padding: 1rem;
+            }
+
+            .summary-row {
+                font-size: 1rem;
+            }
+
+            .summary-row.total {
+                font-size: 1.2rem;
+            }
+
+            .order-header {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+            }
+
+            .timeline-step {
+                margin-bottom: 1.5rem;
+            }
+
+            .timeline-dot {
+                margin-right: 0.75rem;
+            }
+
+            .delivery-map {
+                padding: 1rem;
+            }
+
+            .item-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .toast-notification {
+                left: 1rem;
+                right: 1rem;
+                bottom: 1rem;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.5rem;
+                text-align: center;
+            }
+
+            .menu-toggle {
+                align-self: center;
+            }
+
+            .hero h1 {
+                font-size: 1.7rem;
+            }
+
+            .price {
+                font-size: 1.3rem;
+            }
+
+            .auth-card {
+                max-width: 100%;
+            }
+
+            .auth-card-header {
+                padding: 0.85rem;
+            }
+
+            .auth-form {
+                padding: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo" onclick="showPage('home')">⚙️ TechParts</div>
+            <button id="menu-toggle" class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+            <input id="search-input" class="search-bar" type="text" placeholder="Search for PC parts...">
+            <nav id="main-nav">
+                <div class="nav-section">
+                    <button onclick="showPage('home')">Home</button>
+                    <button onclick="showPage('products')">Products</button>
+                    <button id="track-orders-btn" onclick="showPage('tracking')">Track Orders</button>
+                    <button id="account-btn" class="account-btn" onclick="showAuthModal('login')">Account</button>
+                    <span id="auth-status" class="auth-status"></span>
+                </div>
+                <div id="cart-nav-icon" class="cart-icon" onclick="showPage('cart')">
+                    🛒
+                    <span class="cart-count" id="cart-count">0</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HOME PAGE -->
+    <div id="home" class="page-section active">
+        <section class="hero">
+            <h1>Premium PC Components & Gaming Gear</h1>
+            <p>Find everything you need to build or upgrade your gaming PC</p>
+            <button class="hero-button" onclick="showPage('products')">Shop Now</button>
+        </section>
+
+        <div class="container">
+            <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: #16213e;">We have GPU, PROCESSORS, STORAGE, MEMORY, MOTHERBOARD, AND COOLING SYSTEMS</h2>
+            <section class="categories">
+                <div class="category-card">
+                    <div class="category-icon">🖥️</div>
+                    <h3>GPUs</h3>
+                    <p>Graphics Cards</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">⚡</div>
+                    <h3>Processors</h3>
+                    <p>CPUs & Chips</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">💾</div>
+                    <h3>Storage</h3>
+                    <p>SSDs & HDDs</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🧠</div>
+                    <h3>Memory</h3>
+                    <p>RAM Modules</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">⚙️</div>
+                    <h3>Motherboards</h3>
+                    <p>System Boards</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">🌊</div>
+                    <h3>Cooling</h3>
+                    <p>CPU Coolers</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- PRODUCTS PAGE -->
+    <div id="products" class="page-section">
+        <div class="container">
+            <section class="products-section">
+                <h2>Featured Products</h2>
+                <div class="product-filters" id="product-filters"></div>
+                <div class="products-grid" id="products-grid">
+                    <!-- Products will be generated by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- CART PAGE -->
+    <div id="cart" class="page-section">
+        <div class="container">
+            <div class="cart-container">
+                <h2 class="cart-header">Your Shopping Cart</h2>
+                <div id="cart-content">
+                    <!-- Cart content will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKOUT PAGE -->
+    <div id="checkout" class="page-section">
+        <div class="container">
+            <div class="checkout-container">
+                <h1 style="color: #16213e; margin-bottom: 2rem; text-align: center;">Checkout</h1>
+                <div class="checkout-layout">
+                    <div>
+                        <h3 class="section-title">Shipping Address</h3>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="fullname" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="phone" placeholder="+1-555-0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Street Address</label>
+                            <input type="text" id="address" placeholder="123 Main St" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="city" placeholder="New York" required>
+                            </div>
+                            <div class="form-group">
+                                <label>State/Province</label>
+                                <input type="text" id="state" placeholder="NY" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ZIP/Postal Code</label>
+                                <input type="text" id="zip" placeholder="10001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Country</label>
+                                <input type="text" id="country" placeholder="USA" required>
+                            </div>
+                        </div>
+
+                        <h3 class="section-title" style="margin-top: 2rem;">Shipping Method</h3>
+                        <div class="form-group">
+                            <select id="shipping-method" onchange="updateShippingCost()">
+                                <option value="standard">Standard Shipping (5-7 days) - Free</option>
+                                <option value="express">Express Shipping (2-3 days) - ₱300</option>
+                                <option value="overnight">Overnight Shipping - ₱1000</option>
+                            </select>
+                        </div>
+
+                        <h3 class="section-title" style="margin-top: 2rem;">Payment Information</h3>
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input type="text" placeholder="1234 5678 9012 3456" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expiry Date</label>
+                                <input type="text" placeholder="MM/YY" required>
+                            </div>
+                            <div class="form-group">
+                                <label>CVV</label>
+                                <input type="text" placeholder="123" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="order-summary-checkout">
+                            <h3>Order Summary</h3>
+                            <div id="checkout-items">
+                                <!-- Items will be generated by JavaScript -->
+                            </div>
+                            <div class="summary-item">
+                                <span>Subtotal:</span>
+                                <span>₱<span id="subtotal">0.00</span></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Shipping:</span>
+                                <span>₱<span id="shipping-cost">0.00</span></span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Tax (10%):</span>
+                                <span>₱<span id="tax">0.00</span></span>
+                            </div>
+                            <div class="summary-item total">
+                                <span>Total:</span>
+                                <span>₱<span id="total-amount">0.00</span></span>
+                            </div>
+                            <button class="place-order-btn" onclick="placeOrder()">Place Order</button>
+                            <button class="place-order-btn" style="background-color: #999; margin-top: 0.5rem;" onclick="showPage('cart')">Back to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDER TRACKING PAGE -->
+    <div id="tracking" class="page-section">
+        <div class="container">
+            <div class="tracking-container">
+                <h2 style="color: #16213e; margin-bottom: 2rem; border-bottom: 3px solid #00d4ff; padding-bottom: 1rem;">Track Your Orders</h2>
+                <div id="tracking-content">
+                    <!-- Orders will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About TechParts</h4>
+                <p>Your one-stop shop for premium PC components, gaming gear, and computer accessories.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#" onclick="showPage('products'); return false;">Products</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Customer Service</h4>
+                <ul>
+                    <li><a href="#">Returns & Exchanges</a></li>
+                    <li><a href="#">Warranty Info</a></li>
+                    <li><a href="#">Shipping</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>📧 ForSchoolProject@gmail.com</p>
+                <p>📞 098654825145</p>
+                <p>📍 IBA, HAGONOY, BULACAN</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 TechParts. All rights reserved. | Privacy Policy | Terms of Service</p>
+        </div>
+    </footer>
+
+    <div id="auth-modal" class="auth-modal" onclick="closeAuthModal(event)">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <strong>Account</strong>
+                <button style="background:none;border:none;color:white;font-size:1.25rem;cursor:pointer;" onclick="closeAuthModal(event)">×</button>
+            </div>
+            <div class="auth-tabs">
+                <button id="login-tab" class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button id="register-tab" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+            </div>
+            <form id="login-form" class="auth-form active" onsubmit="loginUser(event)">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button class="auth-submit" type="submit">Login</button>
+            </form>
+            <form id="register-form" class="auth-form" onsubmit="registerUser(event)">
+                <input type="text" id="register-name" placeholder="Full Name" required>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="password" id="register-password" placeholder="Password (min 6 chars)" minlength="6" required>
+                <button class="auth-submit" type="submit">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-notification" class="toast-notification"></div>
+
+    <script>
+        // Product Database
+        const products = [
+            {
+                id: 1,
+                name: 'RTX 4080 Super',
+                category: 'GPUs',
+                description: 'Professional gaming GPU',
+                icon: '🎮',
+                specs: ['16GB GDDR6X Memory', 'Ada Architecture', '2505 MHz Boost Clock'],
+                price: 21980,
+                oldPrice: 23980,
+                badge: 'On Sale'
+            },
+            {
+                id: 2,
+                name: 'Intel Core i9-13900K',
+                category: 'Processors',
+                description: 'High-performance processor',
+                icon: '⚡',
+                specs: ['24 Cores / 32 Threads', '5.8 GHz Boost', 'LGA1700 Socket'],
+                price: 11780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 3,
+                name: 'Corsair DDR5 32GB',
+                category: 'Memory',
+                description: 'High-speed memory kit',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '6000 MHz Speed', '36 CAS Latency'],
+                price: 3580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 4,
+                name: 'Samsung 990 Pro 4TB',
+                category: 'Storage',
+                description: 'NVMe SSD storage',
+                icon: '💾',
+                specs: ['4TB Capacity', '7,100 MB/s Read', 'PCIe 4.0'],
+                price: 6980,
+                oldPrice: null,
+                badge: 'New'
+            },
+            {
+                id: 5,
+                name: 'ROG STRIX Z790',
+                category: 'Motherboards',
+                description: 'Premium gaming motherboard',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 9180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 6,
+                name: 'Corsair RM1000x',
+                category: 'Power Supply',
+                description: '1000W modular PSU',
+                icon: '🔌',
+                specs: ['1000W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 3980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 7,
+                name: 'Lian Li LANCOOL 215',
+                category: 'Cases',
+                description: 'Modern PC case',
+                icon: '📦',
+                specs: ['Tempered Glass', '4x 120mm Fans', 'ATX Compatible'],
+                price: 1780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 8,
+                name: 'Noctua NH-D15',
+                category: 'Cooling',
+                description: 'Premium air cooler',
+                icon: '🌊',
+                specs: ['12V PWM Fans', 'Ultra-Silent', 'Universal Mount'],
+                price: 1580,
+                oldPrice: 1980,
+                badge: 'On Sale'
+            },
+            {
+                id: 9,
+                name: 'RTX 4090',
+                category: 'GPUs',
+                description: 'Flagship gaming GPU',
+                icon: '🎮',
+                specs: ['24GB GDDR6X Memory', 'Full Ada Implementation', '2520 MHz Boost'],
+                price: 29980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 10,
+                name: 'RTX 4070 Ti',
+                category: 'GPUs',
+                description: 'Mid-range gaming GPU',
+                icon: '🎮',
+                specs: ['12GB GDDR6X Memory', 'Ada Architecture', '2610 MHz Boost'],
+                price: 13480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 11,
+                name: 'RTX 4070',
+                category: 'GPUs',
+                description: 'Balanced gaming GPU',
+                icon: '🎮',
+                specs: ['12GB GDDR6 Memory', 'Ada Architecture', '2475 MHz Boost'],
+                price: 10980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 12,
+                name: 'RTX 4060 Ti',
+                category: 'GPUs',
+                description: 'Entry-level gaming GPU',
+                icon: '🎮',
+                specs: ['8GB GDDR6 Memory', 'Ada Architecture', '2535 MHz Boost'],
+                price: 6480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 13,
+                name: 'RTX 4060',
+                category: 'GPUs',
+                description: 'Budget gaming GPU',
+                icon: '🎮',
+                specs: ['8GB GDDR6 Memory', 'Ada Architecture', '2460 MHz Boost'],
+                price: 4980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 14,
+                name: 'RX 7900 XTX',
+                category: 'GPUs',
+                description: 'AMD flagship GPU',
+                icon: '🎮',
+                specs: ['24GB GDDR6 Memory', 'RDNA 3 Architecture', '2500 MHz Boost'],
+                price: 27480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 15,
+                name: 'RX 7900 XT',
+                category: 'GPUs',
+                description: 'AMD high-end GPU',
+                icon: '🎮',
+                specs: ['20GB GDDR6 Memory', 'RDNA 3 Architecture', '2500 MHz Boost'],
+                price: 22980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 16,
+                name: 'RTX 4080',
+                category: 'GPUs',
+                description: 'Professional graphics card',
+                icon: '🎮',
+                specs: ['16GB GDDR6X Memory', 'Ada Architecture', '2505 MHz Boost'],
+                price: 19480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 17,
+                name: 'Arc A770',
+                category: 'GPUs',
+                description: 'Intel discrete GPU',
+                icon: '🎮',
+                specs: ['8GB/16GB GDDR6 Memory', 'Intel Arc', '2400 MHz Boost'],
+                price: 7280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 18,
+                name: 'RTX 4050',
+                category: 'GPUs',
+                description: 'Mobile GPU equivalent',
+                icon: '🎮',
+                specs: ['6GB GDDR6 Memory', 'Ada Architecture', '2550 MHz Boost'],
+                price: 3780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 19,
+                name: 'RX 6700 XT',
+                category: 'GPUs',
+                description: 'Mid-range AMD GPU',
+                icon: '🎮',
+                specs: ['12GB GDDR6 Memory', 'RDNA 2 Architecture', '2495 MHz Boost'],
+                price: 8980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 20,
+                name: 'RX 6800 XT',
+                category: 'GPUs',
+                description: 'High-end AMD GPU',
+                icon: '🎮',
+                specs: ['16GB GDDR6 Memory', 'RDNA 2 Architecture', '2505 MHz Boost'],
+                price: 18480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 21,
+                name: 'RTX 3060',
+                category: 'GPUs',
+                description: 'Previous gen GPU',
+                icon: '🎮',
+                specs: ['12GB GDDR6 Memory', 'Ampere Architecture', '1777 MHz Boost'],
+                price: 5280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 22,
+                name: 'Intel Core i9-14900K',
+                category: 'Processors',
+                description: 'Latest flagship processor',
+                icon: '⚡',
+                specs: ['24 Cores / 32 Threads', '6.0 GHz Boost', 'LGA1700 Socket'],
+                price: 12980,
+                oldPrice: null,
+                badge: 'New'
+            },
+            {
+                id: 23,
+                name: 'Intel Core i7-14700K',
+                category: 'Processors',
+                description: 'High-end processor',
+                icon: '⚡',
+                specs: ['20 Cores / 28 Threads', '5.6 GHz Boost', 'LGA1700 Socket'],
+                price: 8980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 24,
+                name: 'Intel Core i5-14600K',
+                category: 'Processors',
+                description: 'Mid-range processor',
+                icon: '⚡',
+                specs: ['14 Cores / 20 Threads', '5.5 GHz Boost', 'LGA1700 Socket'],
+                price: 5280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 25,
+                name: 'AMD Ryzen 9 7950X',
+                category: 'Processors',
+                description: 'AMD flagship processor',
+                icon: '⚡',
+                specs: ['16 Cores / 32 Threads', '5.7 GHz Boost', 'AM5 Socket'],
+                price: 11480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 26,
+                name: 'AMD Ryzen 9 7900X',
+                category: 'Processors',
+                description: 'High-end AMD processor',
+                icon: '⚡',
+                specs: ['12 Cores / 24 Threads', '5.6 GHz Boost', 'AM5 Socket'],
+                price: 8280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 27,
+                name: 'AMD Ryzen 7 7700X',
+                category: 'Processors',
+                description: 'Mid-high AMD processor',
+                icon: '⚡',
+                specs: ['8 Cores / 16 Threads', '5.4 GHz Boost', 'AM5 Socket'],
+                price: 5780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 28,
+                name: 'Intel Core i9-13900KS',
+                category: 'Processors',
+                description: 'Overclocked flagship',
+                icon: '⚡',
+                specs: ['24 Cores / 32 Threads', '6.0 GHz Boost', 'LGA1700 Socket'],
+                price: 13480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 29,
+                name: 'AMD Ryzen 5 7600X',
+                category: 'Processors',
+                description: 'Budget AMD processor',
+                icon: '⚡',
+                specs: ['6 Cores / 12 Threads', '5.3 GHz Boost', 'AM5 Socket'],
+                price: 3980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 30,
+                name: 'Intel Core i3-13100',
+                category: 'Processors',
+                description: 'Entry-level processor',
+                icon: '⚡',
+                specs: ['4 Cores / 8 Threads', '4.5 GHz Boost', 'LGA1700 Socket'],
+                price: 2280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 31,
+                name: 'Intel Core i7-13700K',
+                category: 'Processors',
+                description: 'Previous gen high-end',
+                icon: '⚡',
+                specs: ['16 Cores / 24 Threads', '5.4 GHz Boost', 'LGA1700 Socket'],
+                price: 7480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 32,
+                name: 'AMD Ryzen 9 5950X',
+                category: 'Processors',
+                description: 'Previous gen flagship',
+                icon: '⚡',
+                specs: ['16 Cores / 32 Threads', '4.9 GHz Boost', 'AM4 Socket'],
+                price: 6280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 33,
+                name: 'Corsair DDR5 64GB',
+                category: 'Memory',
+                description: 'Dual channel DDR5 kit',
+                icon: '🧠',
+                specs: ['2 x 32GB Module', '6600 MHz Speed', '32 CAS Latency'],
+                price: 7180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 34,
+                name: 'G.Skill Trident Z5 32GB',
+                category: 'Memory',
+                description: 'Premium gaming RAM',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '6000 MHz Speed', '30 CAS Latency'],
+                price: 3280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 35,
+                name: 'Kingston Fury Beast 32GB',
+                category: 'Memory',
+                description: 'Budget DDR5 memory',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5200 MHz Speed', '40 CAS Latency'],
+                price: 2580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 36,
+                name: 'Team T-Force Dark 32GB',
+                category: 'Memory',
+                description: 'Gaming focused RAM',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5600 MHz Speed', '36 CAS Latency'],
+                price: 2980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 37,
+                name: 'Crucial DDR5 32GB',
+                category: 'Memory',
+                description: 'Reliable memory kit',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5600 MHz Speed', '28 CAS Latency'],
+                price: 3080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 38,
+                name: 'A-Data XPG Lancer 32GB',
+                category: 'Memory',
+                description: 'Performance memory',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '6000 MHz Speed', '30 CAS Latency'],
+                price: 3480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 39,
+                name: 'Corsair DDR5 16GB',
+                category: 'Memory',
+                description: 'Single channel DDR5',
+                icon: '🧠',
+                specs: ['16GB Module', '5600 MHz Speed', '36 CAS Latency'],
+                price: 1780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 40,
+                name: 'Kingston Fury Beast 64GB',
+                category: 'Memory',
+                description: 'Quad channel DDR5 kit',
+                icon: '🧠',
+                specs: ['4 x 16GB Module', '5200 MHz Speed', '40 CAS Latency'],
+                price: 5580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 41,
+                name: 'G.Skill Flare X5 64GB',
+                category: 'Memory',
+                description: 'AMD optimized RAM',
+                icon: '🧠',
+                specs: ['2 x 32GB Module', '6000 MHz Speed', '30 CAS Latency'],
+                price: 6880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 42,
+                name: 'ADATA Prime Ultra 32GB',
+                category: 'Memory',
+                description: 'Budget friendly RAM',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5200 MHz Speed', '40 CAS Latency'],
+                price: 2280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 43,
+                name: 'Corsair Vengeance 32GB',
+                category: 'Memory',
+                description: 'Previous gen DDR5',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5600 MHz Speed', '36 CAS Latency'],
+                price: 2780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 44,
+                name: 'Team Elite Plus 32GB',
+                category: 'Memory',
+                description: 'Entry-level memory',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '4800 MHz Speed', '40 CAS Latency'],
+                price: 2080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 45,
+                name: 'Samsung 990 Pro 2TB',
+                category: 'Storage',
+                description: 'Mid-capacity NVMe SSD',
+                icon: '💾',
+                specs: ['2TB Capacity', '7,100 MB/s Read', 'PCIe 4.0'],
+                price: 3480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 46,
+                name: 'Samsung 990 Pro 1TB',
+                category: 'Storage',
+                description: 'Entry NVMe SSD',
+                icon: '💾',
+                specs: ['1TB Capacity', '7,100 MB/s Read', 'PCIe 4.0'],
+                price: 1980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 47,
+                name: 'WD Black SN850X 4TB',
+                category: 'Storage',
+                description: 'Western Digital NVMe',
+                icon: '💾',
+                specs: ['4TB Capacity', '7,100 MB/s Read', 'PCIe 4.0'],
+                price: 6480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 48,
+                name: 'Crucial P5 Plus 1TB',
+                category: 'Storage',
+                description: 'Budget NVMe storage',
+                icon: '💾',
+                specs: ['1TB Capacity', '6,600 MB/s Read', 'PCIe 4.0'],
+                price: 1280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 49,
+                name: 'Kingston A3000 2TB',
+                category: 'Storage',
+                description: 'Affordable SSD',
+                icon: '💾',
+                specs: ['2TB Capacity', '6,000 MB/s Read', 'PCIe 4.0'],
+                price: 2580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 50,
+                name: 'ADATA XPG S70 1TB',
+                category: 'Storage',
+                description: 'Performance NVMe',
+                icon: '💾',
+                specs: ['1TB Capacity', '7,100 MB/s Read', 'PCIe 5.0'],
+                price: 1780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 51,
+                name: 'SK Hynix Platinum P41 2TB',
+                category: 'Storage',
+                description: 'High-capacity NVMe',
+                icon: '💾',
+                specs: ['2TB Capacity', '7,100 MB/s Read', 'PCIe 4.0'],
+                price: 3280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 52,
+                name: 'Sabrent Rocket 4 Plus 1TB',
+                category: 'Storage',
+                description: 'Value NVMe option',
+                icon: '💾',
+                specs: ['1TB Capacity', '7,000 MB/s Read', 'PCIe 4.0'],
+                price: 1180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 53,
+                name: 'Seagate Game Drive 2TB',
+                category: 'Storage',
+                description: 'External gaming storage',
+                icon: '💾',
+                specs: ['2TB Capacity', '5,000 MB/s Read', 'USB 3.2'],
+                price: 2880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 54,
+                name: 'Transcend 110Q 1TB',
+                category: 'Storage',
+                description: 'Industrial SSD',
+                icon: '💾',
+                specs: ['1TB Capacity', '6,700 MB/s Read', 'PCIe 4.0'],
+                price: 1480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 55,
+                name: 'MSI Mag Coreliquid 240R',
+                category: 'Motherboards',
+                description: 'Mid-range motherboard',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                price: 5280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 56,
+                name: 'ASUS TUF Gaming Z790',
+                category: 'Motherboards',
+                description: 'Durable gaming board',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                price: 4680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 57,
+                name: 'Gigabyte Z790 Aorus Master',
+                category: 'Motherboards',
+                description: 'Premium motherboard',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 8580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 58,
+                name: 'ASRock Z790 Steel Legend',
+                category: 'Motherboards',
+                description: 'Budget premium board',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                price: 3880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 59,
+                name: 'ASUS ROG Strix B850E',
+                category: 'Motherboards',
+                description: 'AMD high-end board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 7980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 60,
+                name: 'MSI MPG B850 Edge WiFi',
+                category: 'Motherboards',
+                description: 'AMD gaming board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 5.0 Support', 'WiFi 6 Enabled'],
+                price: 5580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 61,
+                name: 'Gigabyte B850 Aorus Elite',
+                category: 'Motherboards',
+                description: 'Mid-range AMD board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 5.0 Support', 'WiFi 6 Enabled'],
+                price: 4280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 62,
+                name: 'ASUS Prime Z790M Plus',
+                category: 'Motherboards',
+                description: 'mATX motherboard',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 5 Enabled'],
+                price: 2980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 63,
+                name: 'MSI Z790 Tomahawk',
+                category: 'Motherboards',
+                description: 'Value gaming board',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                price: 4080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 64,
+                name: 'ASRock X870E Steel Legend',
+                category: 'Motherboards',
+                description: 'Premium AMD board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 8280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 65,
+                name: 'Corsair RM850x',
+                category: 'Power Supply',
+                description: '850W modular PSU',
+                icon: '🔌',
+                specs: ['850W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 3280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 66,
+                name: 'EVGA SuperNOVA 750 Gt',
+                category: 'Power Supply',
+                description: '750W modular PSU',
+                icon: '🔌',
+                specs: ['750W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 2880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 67,
+                name: 'Seasonic PRIME Titanium 1000W',
+                category: 'Power Supply',
+                description: 'Premium 1000W PSU',
+                icon: '🔌',
+                specs: ['1000W Power Output', '80+ Titanium Rated', 'Fully Modular'],
+                price: 5480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 68,
+                name: 'MSI MPG A1000G PCIE5',
+                category: 'Power Supply',
+                description: '1000W PCIe 5.0 PSU',
+                icon: '🔌',
+                specs: ['1000W Power Output', '80+ Gold Rated', 'PCIe 5.0 Ready'],
+                price: 4280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 69,
+                name: 'be quiet! Straight Power 12 CM 750W',
+                category: 'Power Supply',
+                description: 'Silent 750W PSU',
+                icon: '🔌',
+                specs: ['750W Power Output', '80+ Gold Rated', 'Ultra Quiet'],
+                price: 2680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 70,
+                name: 'Thermaltake Toughpower GF1 650W',
+                category: 'Power Supply',
+                description: 'Budget 650W PSU',
+                icon: '🔌',
+                specs: ['650W Power Output', '80+ Gold Rated', 'Semi-Modular'],
+                price: 1980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 71,
+                name: 'Gigabyte P850GM',
+                category: 'Power Supply',
+                description: '850W gaming PSU',
+                icon: '🔌',
+                specs: ['850W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 3080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 72,
+                name: 'Corsair RM750x',
+                category: 'Power Supply',
+                description: '750W modular PSU',
+                icon: '🔌',
+                specs: ['750W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 2580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 73,
+                name: 'NZXT HEPHAESTUS 1000W',
+                category: 'Power Supply',
+                description: 'Modular power supply',
+                icon: '🔌',
+                specs: ['1000W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 3980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 74,
+                name: 'Super Flower Leadex Platinum 1200W',
+                category: 'Power Supply',
+                description: 'Premium 1200W PSU',
+                icon: '🔌',
+                specs: ['1200W Power Output', '80+ Platinum Rated', 'Fully Modular'],
+                price: 5980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 75,
+                name: 'Fractal Design North',
+                category: 'Cases',
+                description: 'Compact PC case',
+                icon: '📦',
+                specs: ['Tempered Glass', '2x 120mm Fans', 'Mini ITX Compatible'],
+                price: 1480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 76,
+                name: 'Be Quiet! Dark Base 901',
+                category: 'Cases',
+                description: 'Silent PC case',
+                icon: '📦',
+                specs: ['Tempered Glass', '3x 120mm Fans', 'ATX Compatible'],
+                price: 2280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 77,
+                name: 'Corsair 5000T RGB',
+                category: 'Cases',
+                description: 'Premium gaming case',
+                icon: '📦',
+                specs: ['Tempered Glass', '6x 120mm Fans', 'E-ATX Compatible'],
+                price: 3980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 78,
+                name: 'NZXT H7 Flow',
+                category: 'Cases',
+                description: 'Modern gaming case',
+                icon: '📦',
+                specs: ['Tempered Glass', '3x 120mm Fans', 'ATX Compatible'],
+                price: 1880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 79,
+                name: 'Thermaltake Level 20 HT',
+                category: 'Cases',
+                description: 'High-end gaming case',
+                icon: '📦',
+                specs: ['Tempered Glass', '4x 120mm Fans', 'E-ATX Compatible'],
+                price: 3280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 80,
+                name: 'Lian Li O11 Dynamic EVO',
+                category: 'Cases',
+                description: 'Popular enthusiast case',
+                icon: '📦',
+                specs: ['Tempered Glass', '3x 120mm Fans', 'ATX Compatible'],
+                price: 2480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 81,
+                name: 'Corsair iCUE 4000 Airflow RGB',
+                category: 'Cases',
+                description: 'RGB gaming case',
+                icon: '📦',
+                specs: ['Tempered Glass', '3x 120mm RGB Fans', 'ATX Compatible'],
+                price: 2080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 82,
+                name: 'Fractal Design Meshify 2',
+                category: 'Cases',
+                description: 'Mesh panel case',
+                icon: '📦',
+                specs: ['Mesh Front', '2x 120mm Fans', 'ATX Compatible'],
+                price: 1680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 83,
+                name: 'Phanteks Eclipse P500A D-RGB',
+                category: 'Cases',
+                description: 'Value RGB case',
+                icon: '📦',
+                specs: ['Tempered Glass', '3x 120mm D-RGB Fans', 'ATX Compatible'],
+                price: 1580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 84,
+                name: 'Enthoo Luxe 2',
+                category: 'Cases',
+                description: 'Premium case design',
+                icon: '📦',
+                specs: ['Tempered Glass', '2x 140mm Fans', 'E-ATX Compatible'],
+                price: 2980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 85,
+                name: 'Cooler Master MasterBox CM694',
+                category: 'Cooling',
+                description: 'Basic air cooler',
+                icon: '🌊',
+                specs: ['Single Fan Design', 'Quiet Operation', 'Universal Mount'],
+                price: 680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 86,
+                name: 'be quiet! Dark Rock Pro 4',
+                category: 'Cooling',
+                description: 'Premium air cooler',
+                icon: '🌊',
+                specs: ['Dual Fan Design', 'Ultra-Silent', 'Universal Mount'],
+                price: 1180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 87,
+                name: 'NZXT Kraken X93 RGB',
+                category: 'Cooling',
+                description: 'Liquid AIO cooler',
+                icon: '🌊',
+                specs: ['360mm Radiator', 'RGB Lighting', 'Intel/AMD Mount'],
+                price: 2480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 88,
+                name: 'Corsair H150i Elite Capellix',
+                category: 'Cooling',
+                description: 'Premium AIO cooler',
+                icon: '🌊',
+                specs: ['360mm Radiator', 'RGB Lighting', 'Intel/AMD Mount'],
+                price: 2680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 89,
+                name: 'Lian Li Galahad 360 RGB',
+                category: 'Cooling',
+                description: 'All-in-one cooler',
+                icon: '🌊',
+                specs: ['360mm Radiator', 'RGB Lighting', 'Intel/AMD Mount'],
+                price: 2080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 90,
+                name: 'Intel LGA1700 Tower Cooler',
+                category: 'Cooling',
+                description: 'Budget cooler',
+                icon: '🌊',
+                specs: ['Single Fan', 'Basic Cooling', 'LGA1700 Mount'],
+                price: 480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 91,
+                name: 'Thermalright Peerless Assassin 120 SE',
+                category: 'Cooling',
+                description: 'Budget air cooler',
+                icon: '🌊',
+                specs: ['Dual Fan Design', 'Budget Friendly', 'Universal Mount'],
+                price: 580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 92,
+                name: 'Scythe Mugen 5 Rev. B',
+                category: 'Cooling',
+                description: 'Japanese air cooler',
+                icon: '🌊',
+                specs: ['Single 120mm Fan', 'Quiet Operation', 'Universal Mount'],
+                price: 780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 93,
+                name: 'Arctic Liquid Freezer II 420',
+                category: 'Cooling',
+                description: 'Value AIO cooler',
+                icon: '🌊',
+                specs: ['420mm Radiator', 'Efficient Cooling', 'Intel/AMD Mount'],
+                price: 1680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 94,
+                name: 'Corsair ML120 RGB',
+                category: 'Cooling',
+                description: 'RGB fan replacement',
+                icon: '🌊',
+                specs: ['120mm Size', 'RGB Lighting', 'Case Fan Mount'],
+                price: 380,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 95,
+                name: 'RTX 2080 Ti',
+                category: 'GPUs',
+                description: 'Legacy GPU',
+                icon: '🎮',
+                specs: ['11GB GDDR6 Memory', 'Turing Architecture', '1665 MHz Boost'],
+                price: 4280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 96,
+                name: 'GTX 1080 Ti',
+                category: 'GPUs',
+                description: 'Previous generation',
+                icon: '🎮',
+                specs: ['11GB GDDR5X Memory', 'Pascal Architecture', '1582 MHz Boost'],
+                price: 3180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 97,
+                name: 'Intel Core i5-13600K',
+                category: 'Processors',
+                description: 'Mid-range processor',
+                icon: '⚡',
+                specs: ['14 Cores / 20 Threads', '5.1 GHz Boost', 'LGA1700 Socket'],
+                price: 4480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 98,
+                name: 'Intel Core Ulta v Pro',
+                category: 'Processors',
+                description: 'Workstation processor',
+                icon: '⚡',
+                specs: ['16 Cores / 24 Threads', '5.2 GHz Boost', 'LGA1700 Socket'],
+                price: 6980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 99,
+                name: 'AMD Ryzen 3 4100',
+                category: 'Processors',
+                description: 'Budget processor',
+                icon: '⚡',
+                specs: ['4 Cores / 8 Threads', '4.0 GHz Boost', 'AM4 Socket'],
+                price: 1680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 100,
+                name: 'AMD Threadripper 7960X',
+                category: 'Processors',
+                description: 'Workstation flagship',
+                icon: '⚡',
+                specs: ['24 Cores / 48 Threads', '5.3 GHz Boost', 'sWRX5 Socket'],
+                price: 23880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 101,
+                name: 'Kingston DDR4 32GB',
+                category: 'Memory',
+                description: 'Legacy DDR4 memory',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '3200 MHz Speed', '16 CAS Latency'],
+                price: 1680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 102,
+                name: 'GSkill DDR4 64GB',
+                category: 'Memory',
+                description: 'High-capacity DDR4',
+                icon: '🧠',
+                specs: ['4 x 16GB Module', '3600 MHz Speed', '18 CAS Latency'],
+                price: 3480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 103,
+                name: 'Patriot Viper DDR5 32GB',
+                category: 'Memory',
+                description: 'Gaming memory',
+                icon: '🧠',
+                specs: ['2 x 16GB Module', '5600 MHz Speed', '32 CAS Latency'],
+                price: 2880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 104,
+                name: 'OCZ Vector DDR4 16GB',
+                category: 'Memory',
+                description: 'Budget gaming RAM',
+                icon: '🧠',
+                specs: ['16GB Module', '3000 MHz Speed', '16 CAS Latency'],
+                price: 980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 105,
+                name: 'Kioxia Exceria Plus 2TB',
+                category: 'Storage',
+                description: 'Value NVMe SSD',
+                icon: '💾',
+                specs: ['2TB Capacity', '6,100 MB/s Read', 'PCIe 4.0'],
+                price: 2280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 106,
+                name: 'Intel Optane SSD 900P',
+                category: 'Storage',
+                description: 'High-speed storage',
+                icon: '💾',
+                specs: ['480GB Capacity', '5,500 MB/s Read', 'PCIe 3.0'],
+                price: 1980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 107,
+                name: 'Crucial P2 1TB',
+                category: 'Storage',
+                description: 'Budget SSD',
+                icon: '💾',
+                specs: ['1TB Capacity', '5,100 MB/s Read', 'PCIe 3.0'],
+                price: 980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 108,
+                name: 'Gigabyte GP-GSM2NE8256GNTD 256GB',
+                category: 'Storage',
+                description: 'Compact NVMe',
+                icon: '💾',
+                specs: ['256GB Capacity', '3,500 MB/s Read', 'PCIe 3.0'],
+                price: 680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 109,
+                name: 'ASUS ProArt Z790 Creator WiFi',
+                category: 'Motherboards',
+                description: 'Professional motherboard',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 7880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 110,
+                name: 'MSI MPG Z790I Edge WiFi',
+                category: 'Motherboards',
+                description: 'Mini ITX board',
+                icon: '⚙️',
+                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                price: 3680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 111,
+                name: 'Biostar B850M Steel Legend',
+                category: 'Motherboards',
+                description: 'Budget AMD board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 4.0 Support', 'WiFi 5 Enabled'],
+                price: 2580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 112,
+                name: 'ASRock H870 Pro RS',
+                category: 'Motherboards',
+                description: 'Productivity board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 4.0 Support', 'WiFi 5 Enabled'],
+                price: 4280,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 113,
+                name: 'Corsair RM650x',
+                category: 'Power Supply',
+                description: '650W power supply',
+                icon: '🔌',
+                specs: ['650W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 2080,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 114,
+                name: 'Seasonic Focus 550W',
+                category: 'Power Supply',
+                description: '550W modular PSU',
+                icon: '🔌',
+                specs: ['550W Power Output', '80+ Gold Rated', 'Fully Modular'],
+                price: 1580,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 115,
+                name: 'Thermaltake Smart Pro 850W',
+                category: 'Power Supply',
+                description: 'Smart monitoring PSU',
+                icon: '🔌',
+                specs: ['850W Power Output', '80+ Gold Rated', 'Smart Control'],
+                price: 2880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 116,
+                name: 'Antec Earthwatts 750W',
+                category: 'Power Supply',
+                description: 'Eco-friendly PSU',
+                icon: '🔌',
+                specs: ['750W Power Output', '80+ Bronze Rated', 'Semi-Modular'],
+                price: 1680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 117,
+                name: 'XPG INVADER',
+                category: 'Cases',
+                description: 'Compact mini case',
+                icon: '📦',
+                specs: ['Mesh Design', '2x 80mm Fans', 'Mini ITX Compatible'],
+                price: 980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 118,
+                name: 'Corsair Obsidian 500D',
+                category: 'Cases',
+                description: 'Noiseless case',
+                icon: '📦',
+                specs: ['Soundproof', '2x 120mm Fans', 'ATX Compatible'],
+                price: 2780,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 119,
+                name: 'Metallic Gear NEO Air',
+                category: 'Cases',
+                description: 'Mesh airflow case',
+                icon: '📦',
+                specs: ['Mesh Front', '3x 120mm Fans', 'ATX Compatible'],
+                price: 1380,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 120,
+                name: 'Corsair iCUE 5000T',
+                category: 'Cases',
+                description: 'Premium RGB case',
+                icon: '📦',
+                specs: ['RGB Front Panel', '4x 120mm RGB Fans', 'E-ATX Compatible'],
+                price: 3680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 121,
+                name: 'Intel Stock Cooler',
+                category: 'Cooling',
+                description: 'Basic stock cooler',
+                icon: '🌊',
+                specs: ['Stock Thermal Paste', 'Minimal Performance', 'LGA1700 Mount'],
+                price: 180,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 122,
+                name: 'Corsair iCUE H100i PRO XT',
+                category: 'Cooling',
+                description: 'Premium AIO cooler',
+                icon: '🌊',
+                specs: ['360mm Radiator', 'RGB Control', 'Intel/AMD Mount'],
+                price: 2380,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 123,
+                name: 'Cooler Master Hyper 212 EVO',
+                category: 'Cooling',
+                description: 'Popular budget cooler',
+                icon: '🌊',
+                specs: ['Single 120mm Fan', 'Budget Friendly', 'Universal Mount'],
+                price: 480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 124,
+                name: 'NZXT Kraken Z63',
+                category: 'Cooling',
+                description: 'Display AIO cooler',
+                icon: '🌊',
+                specs: ['280mm Radiator', 'LCD Display', 'Intel/AMD Mount'],
+                price: 1980,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 125,
+                name: 'Sabrent Rocket 4 Max 2TB',
+                category: 'Storage',
+                description: 'High-speed NVMe',
+                icon: '💾',
+                specs: ['2TB Capacity', '7,000 MB/s Read', 'PCIe 4.0'],
+                price: 2880,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 126,
+                name: 'MSI MAG X670E-I EDGE WIFI',
+                category: 'Motherboards',
+                description: 'Mini ITX AMD board',
+                icon: '⚙️',
+                specs: ['AM5 Socket', 'PCIe 5.0 Support', 'WiFi 7 Enabled'],
+                price: 4680,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 127,
+                name: 'Super Flower Leadex Titanium 850W',
+                category: 'Power Supply',
+                description: 'Premium titanium PSU',
+                icon: '🔌',
+                specs: ['850W Power Output', '80+ Titanium Rated', 'Fully Modular'],
+                price: 4480,
+                oldPrice: null,
+                badge: null
+            },
+            {
+                id: 128,
+                name: 'Corsair 5000X RGB',
+                category: 'Cases',
+                description: 'Extreme gaming case',
+                icon: '📦',
+                specs: ['Tempered Glass', '4x 120mm RGB Fans', 'E-ATX Compatible'],
+                price: 4280,
+                oldPrice: null,
+                badge: null
+            }
+        ];
+
+        // Shopping Cart
+        let cart = [];
+        let orders = [];
+        let shippingCost = 0;
+        let users = [];
+        let currentUser = null;
+        let currentPage = 'home';
+        let selectedCategory = 'All';
+        let filteredProducts = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            applyProductFilters();
+            loadFromLocalStorage();
+            loadAuthFromLocalStorage();
+            updateAuthUI();
+            
+            // Setup search functionality
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                if (query && currentPage !== 'products') {
+                    showPage('products');
+                }
+                searchProducts(this.value);
+            });
+
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeMobileMenu();
+                }
+            });
+        });
+
+        function toggleMobileMenu() {
+            const nav = document.getElementById('main-nav');
+            const toggle = document.getElementById('menu-toggle');
+            if (!nav || !toggle) return;
+
+            nav.classList.toggle('open');
+            toggle.textContent = nav.classList.contains('open') ? '✕' : '☰';
+        }
+
+        function closeMobileMenu() {
+            const nav = document.getElementById('main-nav');
+            const toggle = document.getElementById('menu-toggle');
+            if (!nav || !toggle) return;
+
+            nav.classList.remove('open');
+            toggle.textContent = '☰';
+        }
+
+        function getProductIconByCategory(category) {
+            const icons = {
+                'GPUs': '🖥️',
+                'Processors': '⚙️',
+                'Memory': '🧠',
+                'Storage': '💽',
+                'Motherboards': '🔩',
+                'Power Supply': '🔌',
+                'Cases': '🧰',
+                'Cooling': '❄️'
+            };
+            return icons[category] || '📦';
+        }
+
+        function getUniqueCategories() {
+            return ['All', ...new Set(products.map(product => product.category))];
+        }
+
+        function renderCategoryFilters() {
+            const filtersContainer = document.getElementById('product-filters');
+            if (!filtersContainer) return;
+
+            const categories = getUniqueCategories();
+            filtersContainer.innerHTML = categories.map(category => `
+                <button
+                    class="filter-btn ${selectedCategory === category ? 'active' : ''}"
+                    onclick="setCategoryFilter('${category.replace(/'/g, "\\'")}')"
+                >
+                    ${category}
+                </button>
+            `).join('');
+        }
+
+        function setCategoryFilter(category) {
+            selectedCategory = category;
+            applyProductFilters();
+        }
+
+        // Display Products
+        function displayProducts(productsToRender) {
+            const productsGrid = document.getElementById('products-grid');
+            productsGrid.innerHTML = '';
+
+            if (!productsToRender || productsToRender.length === 0) {
+                productsGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;"><h2>No products found</h2><p>Try different search keywords or filter categories</p></div>';
+                return;
+            }
+
+            productsToRender.forEach(product => {
+                const productHTML = `
+                    <div class="product-card">
+                        <div class="product-image">${getProductIconByCategory(product.category)}</div>
+                        <div class="product-info">
+                            ${product.badge ? `<div class="badge">${product.badge}</div>` : ''}
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-description">${product.description}</div>
+                            <ul class="product-specs">
+                                ${product.specs.map(spec => `<li>${spec}</li>`).join('')}
+                            </ul>
+                            <div class="product-footer">
+                                <div>
+                                    ${product.oldPrice ? `<span class="old-price">₱${product.oldPrice}</span>` : ''}
+                                    <span class="price">₱${product.price}</span>
+                                </div>
+                                <button class="add-to-cart-btn" onclick="addToCart(${product.id})">Add</button>
+                            </div>
+                            <div class="in-stock">✓ In Stock</div>
+                        </div>
+                    </div>
+                `;
+                productsGrid.innerHTML += productHTML;
+            });
+        }
+
+        function applyProductFilters() {
+            const lowerCaseQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+            filteredProducts = products.filter(product => {
+                const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+                const matchesQuery = lowerCaseQuery === '' ||
+                    product.name.toLowerCase().includes(lowerCaseQuery) ||
+                    product.description.toLowerCase().includes(lowerCaseQuery) ||
+                    product.category.toLowerCase().includes(lowerCaseQuery) ||
+                    product.specs.some(spec => spec.toLowerCase().includes(lowerCaseQuery));
+
+                return matchesCategory && matchesQuery;
+            });
+
+            renderCategoryFilters();
+            displayProducts(filteredProducts);
+        }
+
+        // Search Products
+        function searchProducts() {
+            if (currentPage !== 'products') {
+                return;
+            }
+            applyProductFilters();
+        }
+
+        // Add to Cart
+        function addToCart(productId) {
+            if (!currentUser) {
+                showNotification('Please login first before adding items to cart.');
+                showAuthModal('login');
+                return;
+            }
+
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1
+                });
+            }
+
+            updateCartCount();
+            saveToLocalStorage();
+            showNotification(`${product.name} added to cart!`);
+        }
+
+        // Update Cart Count
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        // Display Cart
+        function displayCart() {
+            const cartContent = document.getElementById('cart-content');
+            
+            if (cart.length === 0) {
+                cartContent.innerHTML = `
+                    <div class="empty-cart">
+                        <h2>Your cart is empty!</h2>
+                        <p>Start shopping to add items to your cart.</p>
+                        <button class="hero-button" onclick="showPage('products')" style="margin-top: 1rem;">Continue Shopping</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let cartHTML = '<div class="cart-items">';
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                cartHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-qty">
+                                <button class="qty-btn" onclick="decreaseQty(${index})">−</button>
+                                <span>Qty: ${item.quantity}</span>
+                                <button class="qty-btn" onclick="increaseQty(${index})">+</button>
+                            </div>
+                            <div>Price: ₱${item.price.toFixed(2)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #ff4444; margin-bottom: 0.5rem;">₱${itemTotal.toFixed(2)}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cartHTML += '</div>';
+            cartHTML += `
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>₱${total.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Estimated Tax (10%):</span>
+                        <span>₱${(total * 0.1).toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>₱${(total * 1.1).toFixed(2)}</span>
+                    </div>
+                    <button class="checkout-btn" onclick="goToCheckout()">Proceed to Checkout</button>
+                </div>
+            `;
+
+            cartContent.innerHTML = cartHTML;
+        }
+
+        // Cart Operations
+        function increaseQty(index) {
+            cart[index].quantity += 1;
+            updateCartCount();
+            displayCart();
+            saveToLocalStorage();
+        }
+
+        function decreaseQty(index) {
+            if (cart[index].quantity > 1) {
+                cart[index].quantity -= 1;
+            } else {
+                removeFromCart(index);
+                return;
+            }
+            updateCartCount();
+            displayCart();
+            saveToLocalStorage();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartCount();
+            displayCart();
+            saveToLocalStorage();
+        }
+
+        // Go to Checkout
+        function goToCheckout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            displayCheckout();
+            showPage('checkout');
+        }
+
+        // Display Checkout
+        function displayCheckout() {
+            const checkoutItems = document.getElementById('checkout-items');
+            let total = 0;
+
+            let html = '';
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                html += `
+                    <div class="summary-item">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>₱${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            checkoutItems.innerHTML = html;
+            updateCheckoutTotals();
+        }
+
+        function updateShippingCost() {
+            const method = document.getElementById('shipping-method').value;
+            switch(method) {
+                case 'standard':
+                    shippingCost = 0;
+                    break;
+                case 'express':
+                    shippingCost = 15;
+                    break;
+                case 'overnight':
+                    shippingCost = 50;
+                    break;
+            }
+            updateCheckoutTotals();
+        }
+
+        function updateCheckoutTotals() {
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.1;
+            const total = subtotal + shippingCost + tax;
+
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('shipping-cost').textContent = shippingCost.toFixed(2);
+            document.getElementById('tax').textContent = tax.toFixed(2);
+            document.getElementById('total-amount').textContent = total.toFixed(2);
+        }
+
+        // Place Order
+        function placeOrder() {
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zip = document.getElementById('zip').value;
+            const country = document.getElementById('country').value;
+            const shippingMethod = document.getElementById('shipping-method').value;
+
+            // Validate form
+            if (!fullname || !email || !phone || !address || !city || !state || !zip || !country) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            // Create order
+            const orderId = 'ORD-' + Date.now();
+            const orderDate = new Date();
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const tax = subtotal * 0.1;
+            const total = subtotal + shippingCost + tax;
+
+            const order = {
+                id: orderId,
+                date: orderDate,
+                items: JSON.parse(JSON.stringify(cart)),
+                shippingAddress: { fullname, email, phone, address, city, state, zip, country },
+                shippingMethod: shippingMethod,
+                subtotal: subtotal,
+                shipping: shippingCost,
+                tax: tax,
+                total: total,
+                status: 'processing',
+                timeline: generateOrderTimeline(shippingMethod)
+            };
+
+            orders.push(order);
+            saveToLocalStorage();
+            
+            // Clear cart
+            cart = [];
+            updateCartCount();
+
+            // Show confirmation and redirect
+            alert(`Order placed successfully!\nOrder ID: ${orderId}\n\nYou can track your order in the "Track Orders" section.`);
+            showPage('tracking');
+            displayOrders();
+        }
+
+        // Generate Order Timeline
+        function generateOrderTimeline(shippingMethod) {
+            const now = new Date();
+            const steps = [
+                {
+                    title: 'Order Confirmed',
+                    description: 'Your order has been received',
+                    date: new Date(now),
+                    location: 'System',
+                    completed: true
+                },
+                {
+                    title: 'Processing',
+                    description: 'Your items are being prepared for shipment',
+                    date: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+                    location: 'Warehouse',
+                    completed: false
+                },
+                {
+                    title: 'Shipped',
+                    description: 'Your package is on its way',
+                    date: new Date(now.getTime() + 6 * 60 * 60 * 1000),
+                    location: 'Distribution Center',
+                    completed: false
+                },
+                {
+                    title: 'Out for Delivery',
+                    description: 'Package is out for delivery today',
+                    date: new Date(now.getTime() + 24 * 60 * 60 * 1000),
+                    location: 'Local Delivery Hub',
+                    completed: false
+                },
+                {
+                    title: 'Delivered',
+                    description: 'Package delivered to your address',
+                    date: getDeliveryDate(shippingMethod),
+                    location: 'Your Address',
+                    completed: false
+                }
+            ];
+            return steps;
+        }
+
+        function getDeliveryDate(shippingMethod) {
+            const now = new Date();
+            let daysToAdd = 7; // default: standard
+            if (shippingMethod === 'express') daysToAdd = 3;
+            if (shippingMethod === 'overnight') daysToAdd = 1;
+            return new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+        }
+
+        // Cancel Order
+        function cancelOrder(orderId, orderIndex) {
+            const confirmed = confirm(`Are you sure you want to cancel order ${orderId}? This action cannot be undone.`);
+            
+            if (confirmed) {
+                const order = orders[orderIndex];
+                order.status = 'cancelled';
+                saveToLocalStorage();
+                showNotification(`Order ${orderId} has been cancelled successfully! A refund will be processed within 5-7 business days.`);
+                displayOrders();
+            }
+        }
+
+        // Display Orders
+        function displayOrders() {
+            const trackingContent = document.getElementById('tracking-content');
+            
+            if (orders.length === 0) {
+                trackingContent.innerHTML = `
+                    <div class="no-orders">
+                        <h2>No Orders Yet</h2>
+                        <p>You haven't placed any orders. Start shopping now!</p>
+                        <button class="hero-button" onclick="showPage('products')" style="margin-top: 1rem;">Shop Now</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let ordersHTML = '';
+            orders.forEach((order, orderIndex) => {
+                const statusClass = 'status-' + order.status;
+                
+                // Check if order is cancelled
+                if (order.status === 'cancelled') {
+                    ordersHTML += `
+                        <div class="order-card" style="opacity: 0.75;">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-id">${order.id}</div>
+                                    <div class="order-date">Ordered: ${formatDate(order.date)}</div>
+                                </div>
+                                <span class="order-status-badge status-cancelled">Cancelled</span>
+                            </div>
+
+                            <div style="margin: 1.5rem 0; padding: 1rem; background: #f8d7da; border-left: 4px solid #721c24; border-radius: 4px;">
+                                <p style="color: #721c24; font-weight: bold;">
+                                    ❌ This order has been cancelled
+                                </p>
+                                <p style="color: #721c24; font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Your refund of ₱${order.total.toFixed(2)} will be processed within 5-7 business days.
+                                </p>
+                            </div>
+
+                            <div class="order-items">
+                                <h4>Order Items</h4>
+                                ${order.items.map(item => `
+                                    <div class="item-row">
+                                        <span class="item-name">${item.name} x ${item.quantity}</span>
+                                        <span class="item-price">₱${(item.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="item-row" style="border-top: 2px solid #ddd; margin-top: 1rem; padding-top: 1rem;">
+                                    <span style="font-weight: bold;">Total:</span>
+                                    <span style="font-weight: bold; color: #ff4444;">₱${order.total.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 4px;">
+                                <h4 style="color: #16213e; margin-bottom: 0.5rem;">Delivery To:</h4>
+                                <p style="font-size: 0.9rem; color: #333;">
+                                    ${order.shippingAddress.fullname}<br>
+                                    ${order.shippingAddress.address}<br>
+                                    ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}<br>
+                                    ${order.shippingAddress.country}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const currentStatus = simulateDeliveryStatus(order);
+                
+                let timelineHTML = '';
+                order.timeline.forEach((step, stepIndex) => {
+                    const isCompleted = stepIndex <= currentStatus;
+                    const completedClass = isCompleted ? 'completed' : '';
+                    
+                    timelineHTML += `
+                        <div class="timeline-step ${completedClass}">
+                            <div class="timeline-dot">${isCompleted ? '✓' : stepIndex + 1}</div>
+                            <div class="timeline-content">
+                                <div class="timeline-title">${step.title}</div>
+                                <div class="timeline-description">${step.description}</div>
+                                <div class="timeline-info">📍 ${step.location} • ${formatDate(step.date)}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const deliveryDate = order.timeline[4].date;
+                const deliveryStatus = getDeliveryStatus(currentStatus);
+
+                ordersHTML += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">${order.id}</div>
+                                <div class="order-date">Ordered: ${formatDate(order.date)}</div>
+                            </div>
+                            <span class="order-status-badge ${statusClass}">${deliveryStatus}</span>
+                        </div>
+
+                        <div class="tracking-timeline">
+                            ${timelineHTML}
+                        </div>
+
+                        <div class="delivery-map">
+                            <h4>📦 Current Location & Delivery Info</h4>
+                            <div class="delivery-info">
+                                <p><strong>Current Location:</strong> ${order.timeline[Math.min(currentStatus, 3)].location}</p>
+                                <p style="margin-top: 0.5rem;"><strong>Shipping Method:</strong> ${getShippingMethodName(order.shippingMethod)}</p>
+                                <p style="margin-top: 0.5rem;"><strong>Tracking Progress:</strong> ${Math.round((currentStatus / 4) * 100)}%</p>
+                            </div>
+                            <div class="estimated-delivery">
+                                📅 Estimated Delivery: ${formatDate(deliveryDate)}
+                            </div>
+                        </div>
+
+                        <div class="order-items">
+                            <h4>Order Items</h4>
+                            ${order.items.map(item => `
+                                <div class="item-row">
+                                    <span class="item-name">${item.name} x ${item.quantity}</span>
+                                    <span class="item-price">₱${(item.price * item.quantity).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="item-row" style="border-top: 2px solid #ddd; margin-top: 1rem; padding-top: 1rem;">
+                                <span style="font-weight: bold;">Total:</span>
+                                <span style="font-weight: bold; color: #ff4444;">₱${order.total.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 4px;">
+                            <h4 style="color: #16213e; margin-bottom: 0.5rem;">Delivery To:</h4>
+                            <p style="font-size: 0.9rem; color: #333;">
+                                ${order.shippingAddress.fullname}<br>
+                                ${order.shippingAddress.address}<br>
+                                ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}<br>
+                                ${order.shippingAddress.country}
+                            </p>
+                        </div>
+
+                        ${currentStatus < 4 ? `
+                            <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ff9800;">
+                                <p style="color: #856404; margin-bottom: 1rem; font-size: 0.9rem;">
+                                    <strong>⚠️ Order in Transit:</strong> You can still cancel this order before it's delivered.
+                                </p>
+                                <button onclick="cancelOrder('${order.id}', ${orderIndex})" style="
+                                    background-color: #ff6b6b;
+                                    color: white;
+                                    border: none;
+                                    padding: 0.75rem 1.5rem;
+                                    border-radius: 4px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    transition: background-color 0.3s;
+                                " onmouseover="this.style.backgroundColor='#ff4444'" onmouseout="this.style.backgroundColor='#ff6b6b'">
+                                    ❌ Cancel Order
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            trackingContent.innerHTML = ordersHTML;
+        }
+
+        // Simulate Delivery Status
+        function simulateDeliveryStatus(order) {
+            const now = new Date();
+            const orderTime = new Date(order.date);
+            const elapsedTime = now - orderTime;
+            const totalSteps = 4;
+
+            // Simulate progression based on elapsed time
+            for (let i = 0; i <= totalSteps; i++) {
+                const stepTime = order.timeline[i].date;
+                if (now < stepTime) {
+                    return Math.max(0, i - 1);
+                }
+            }
+            return totalSteps;
+        }
+
+        function getDeliveryStatus(statusIndex) {
+            const statuses = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
+            return statusIndex < statuses.length ? statuses[statusIndex] : 'Delivered';
+        }
+
+        function getOrderDisplayStatus(order) {
+            if (order.status === 'cancelled') {
+                return 'Cancelled';
+            }
+            const statusIndex = simulateDeliveryStatus(order);
+            return getDeliveryStatus(statusIndex);
+        }
+
+        function getShippingMethodName(method) {
+            const methods = {
+                'standard': 'Standard Shipping (5-7 days)',
+                'express': 'Express Shipping (2-3 days)',
+                'overnight': 'Overnight Shipping'
+            };
+            return methods[method] || method;
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return d.toLocaleDateString('en-US', options);
+        }
+
+        // Page Navigation
+        function showPage(pageName) {
+            if (!currentUser && (pageName === 'cart' || pageName === 'tracking')) {
+                showNotification('Please login to access Cart and Track Orders.');
+                showAuthModal('login');
+                pageName = 'home';
+            }
+
+            currentPage = pageName;
+
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+
+            // Update content when showing pages
+            if (pageName === 'cart') {
+                displayCart();
+            } else if (pageName === 'checkout') {
+                displayCheckout();
+            } else if (pageName === 'tracking') {
+                displayOrders();
+            } else if (pageName === 'products') {
+                applyProductFilters();
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+            closeMobileMenu();
+        }
+
+        // Local Storage Functions
+        function saveToLocalStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        function loadFromLocalStorage() {
+            const savedCart = localStorage.getItem('cart');
+            const savedOrders = localStorage.getItem('orders');
+
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartCount();
+            }
+
+            if (savedOrders) {
+                orders = JSON.parse(savedOrders);
+            }
+        }
+
+        function saveAuthToLocalStorage() {
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        }
+
+        function loadAuthFromLocalStorage() {
+            const savedUsers = localStorage.getItem('users');
+            const savedCurrentUser = localStorage.getItem('currentUser');
+
+            if (savedUsers) users = JSON.parse(savedUsers);
+            if (savedCurrentUser) currentUser = JSON.parse(savedCurrentUser);
+        }
+
+        function showAuthModal(mode) {
+            switchAuthTab(mode);
+            document.getElementById('auth-modal').classList.add('active');
+        }
+
+        function closeAuthModal(event) {
+            if (event && event.target && event.target.id !== 'auth-modal' && event.target.type !== 'button' && event.target.textContent !== '×') {
+                return;
+            }
+            document.getElementById('auth-modal').classList.remove('active');
+        }
+
+        function switchAuthTab(tab) {
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+
+            if (tab === 'register') {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+            } else {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            }
+        }
+
+        function registerUser(event) {
+            event.preventDefault();
+            const name = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim().toLowerCase();
+            const password = document.getElementById('register-password').value;
+
+            if (users.some(user => user.email === email)) {
+                showNotification('Email already registered. Please login instead.');
+                switchAuthTab('login');
+                return;
+            }
+
+            const newUser = { name, email, password };
+            users.push(newUser);
+            currentUser = { name, email };
+            saveAuthToLocalStorage();
+            updateAuthUI();
+            closeAuthModal({ target: { id: 'auth-modal' } });
+            showNotification(`Welcome, ${name}! Account created successfully.`);
+        }
+
+        function loginUser(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+            if (!user) {
+                showNotification('Invalid email or password.');
+                return;
+            }
+
+            currentUser = { name: user.name, email: user.email };
+            saveAuthToLocalStorage();
+            updateAuthUI();
+            closeAuthModal({ target: { id: 'auth-modal' } });
+            showNotification(`Welcome back, ${user.name}!`);
+        }
+
+        function logoutUser() {
+            const activePage = document.querySelector('.page-section.active');
+            currentUser = null;
+            saveAuthToLocalStorage();
+            updateAuthUI();
+            if (activePage && (activePage.id === 'cart' || activePage.id === 'tracking')) {
+                showPage('home');
+            }
+            showNotification('Logged out successfully.');
+        }
+
+        function updateAuthUI() {
+            const accountBtn = document.getElementById('account-btn');
+            const authStatus = document.getElementById('auth-status');
+            const trackOrdersBtn = document.getElementById('track-orders-btn');
+            const cartNavIcon = document.getElementById('cart-nav-icon');
+
+            if (!accountBtn || !authStatus) return;
+
+            if (currentUser) {
+                accountBtn.textContent = 'Logout';
+                accountBtn.onclick = logoutUser;
+                authStatus.textContent = `Hi, ${currentUser.name}`;
+                if (trackOrdersBtn) trackOrdersBtn.style.display = 'inline-block';
+                if (cartNavIcon) cartNavIcon.style.display = 'block';
+            } else {
+                accountBtn.textContent = 'Account';
+                accountBtn.onclick = function() { showAuthModal('login'); };
+                authStatus.textContent = '';
+                if (trackOrdersBtn) trackOrdersBtn.style.display = 'none';
+                if (cartNavIcon) cartNavIcon.style.display = 'none';
+            }
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const toast = document.getElementById('toast-notification');
+            if (!toast) {
+                alert(message);
+                return;
+            }
+
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            clearTimeout(showNotification.timeoutId);
+            showNotification.timeoutId = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2200);
+        }
+    </script>
+</body>
+</html>
