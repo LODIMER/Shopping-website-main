@@ -93,6 +93,10 @@
             font-size: 0.85rem;
         }
 
+        .nav-hidden {
+            display: none;
+        }
+
         .cart-icon {
             position: relative;
             cursor: pointer;
@@ -252,6 +256,48 @@
             padding: 0.75rem;
             cursor: pointer;
             font-weight: 600;
+        }
+
+        .auth-link-btn {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #0b6f8a;
+            cursor: pointer;
+            margin-top: 0.45rem;
+            text-decoration: underline;
+        }
+
+        .profile-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0 1.25rem;
+        }
+
+        .profile-stat {
+            background: #f5fbff;
+            border: 1px solid #dfeef8;
+            border-radius: 8px;
+            padding: 0.7rem;
+        }
+
+        .profile-stat-label {
+            font-size: 0.8rem;
+            color: #5d6f83;
+        }
+
+        .profile-stat-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #16213e;
         }
 
         .toast-notification {
@@ -1329,6 +1375,7 @@
                     <button onclick="showPage('home')">Home</button>
                     <button onclick="showPage('products')">Products</button>
                     <button onclick="showPage('inventory')">Inventory</button>
+                    <button id="profile-btn" class="nav-hidden" onclick="showPage('profile')">Profile</button>
                     <button id="track-orders-btn" onclick="showPage('tracking')">Track Orders</button>
                     <button id="account-btn" class="account-btn" onclick="showAuthModal('login')">Account</button>
                     <span id="auth-status" class="auth-status"></span>
@@ -1525,6 +1572,55 @@
         </div>
     </div>
 
+    <!-- PROFILE PAGE -->
+    <div id="profile" class="page-section">
+        <div class="container">
+            <div class="profile-panel">
+                <h2 style="color: #16213e;">My Profile</h2>
+                <p style="color: #5d6f83; margin-bottom: 0.9rem;">Manage your account and saved checkout info.</p>
+                <div id="profile-stats" class="profile-stats"></div>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profile-name" placeholder="Full name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="profile-email" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" id="profile-phone" placeholder="+1-555-0000">
+                </div>
+                <div class="form-group">
+                    <label>Default Address</label>
+                    <input type="text" id="profile-address" placeholder="123 Main St">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" id="profile-city" placeholder="City">
+                    </div>
+                    <div class="form-group">
+                        <label>State/Province</label>
+                        <input type="text" id="profile-state" placeholder="State">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ZIP</label>
+                        <input type="text" id="profile-zip" placeholder="ZIP">
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="profile-country" placeholder="Country">
+                    </div>
+                </div>
+                <button class="place-order-btn" onclick="saveProfile()">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ORDER TRACKING PAGE -->
     <div id="tracking" class="page-section">
         <div class="container">
@@ -1587,12 +1683,20 @@
                 <input type="email" id="login-email" placeholder="Email" required>
                 <input type="password" id="login-password" placeholder="Password" required>
                 <button class="auth-submit" type="submit">Login</button>
+                <button type="button" class="auth-link-btn" onclick="openResetPasswordForm()">Forgot password?</button>
             </form>
             <form id="register-form" class="auth-form" onsubmit="registerUser(event)">
                 <input type="text" id="register-name" placeholder="Full Name" required>
                 <input type="email" id="register-email" placeholder="Email" required>
                 <input type="password" id="register-password" placeholder="Password (min 6 chars)" minlength="6" required>
                 <button class="auth-submit" type="submit">Create Account</button>
+            </form>
+            <form id="reset-form" class="auth-form" onsubmit="resetPassword(event)">
+                <input type="email" id="reset-email" placeholder="Registered email" required>
+                <input type="password" id="reset-password" placeholder="New password (min 6 chars)" minlength="6" required>
+                <input type="password" id="reset-confirm-password" placeholder="Confirm new password" minlength="6" required>
+                <button class="auth-submit" type="submit">Reset Password</button>
+                <button type="button" class="auth-link-btn" onclick="switchAuthTab('login')">Back to login</button>
             </form>
         </div>
     </div>
@@ -3024,10 +3128,18 @@
         const inventoryDbKey = 'inventoryByProductId';
         const inventoryAdminSessionKey = 'inventoryAdminUnlocked';
         const inventoryAdminPassword = 'admin123';
+        const appDbKey = 'techparts_simple_db_v1';
         let inventoryByProductId = {};
+        let appDb = {
+            users: [],
+            profilesByEmail: {},
+            sentEmails: [],
+            passwordResets: []
+        };
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            loadAppDb();
             loadInventoryDatabase();
             applyProductFilters();
             loadFromLocalStorage();
@@ -3325,6 +3437,7 @@
             });
 
             checkoutItems.innerHTML = html;
+            prefillCheckoutFromProfile();
             updateCheckoutTotals();
         }
 
@@ -3393,6 +3506,14 @@
                 status: 'processing',
                 timeline: generateOrderTimeline(shippingMethod)
             };
+
+            const checkoutEmail = createEmailConfirmation(
+                'checkout',
+                email,
+                `Order ${orderId} confirmation`,
+                `Order ${orderId} confirmed. Total: ₱${total.toFixed(2)}.`
+            );
+            order.proofEmailId = checkoutEmail.id;
 
             orders.push(order);
             saveToLocalStorage();
@@ -3689,6 +3810,11 @@
                 showAuthModal('login');
                 pageName = 'home';
             }
+            if (!currentUser && pageName === 'profile') {
+                showNotification('Please login to access your profile.');
+                showAuthModal('login');
+                pageName = 'home';
+            }
             if (pageName === 'inventory' && !isInventoryAdminUnlocked()) {
                 const unlocked = requestInventoryAdminAccess();
                 if (!unlocked) {
@@ -3717,6 +3843,8 @@
                 applyProductFilters();
             } else if (pageName === 'inventory') {
                 renderInventoryPage();
+            } else if (pageName === 'profile') {
+                renderProfile();
             }
 
             // Scroll to top
@@ -3829,6 +3957,8 @@
         }
 
         function saveAuthToLocalStorage() {
+            appDb.users = JSON.parse(JSON.stringify(users));
+            saveAppDb();
             localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
         }
@@ -3837,8 +3967,46 @@
             const savedUsers = localStorage.getItem('users');
             const savedCurrentUser = localStorage.getItem('currentUser');
 
-            if (savedUsers) users = JSON.parse(savedUsers);
+            if (Array.isArray(appDb.users) && appDb.users.length > 0) {
+                users = JSON.parse(JSON.stringify(appDb.users));
+            } else if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            }
             if (savedCurrentUser) currentUser = JSON.parse(savedCurrentUser);
+        }
+
+        function saveAppDb() {
+            localStorage.setItem(appDbKey, JSON.stringify(appDb));
+        }
+
+        function loadAppDb() {
+            const saved = localStorage.getItem(appDbKey);
+            if (!saved) return;
+            try {
+                const parsed = JSON.parse(saved);
+                appDb = {
+                    users: parsed.users || [],
+                    profilesByEmail: parsed.profilesByEmail || {},
+                    sentEmails: parsed.sentEmails || [],
+                    passwordResets: parsed.passwordResets || []
+                };
+            } catch (error) {
+                appDb = { users: [], profilesByEmail: {}, sentEmails: [], passwordResets: [] };
+            }
+        }
+
+        function createEmailConfirmation(type, toEmail, subject, body) {
+            const emailRecord = {
+                id: `MAIL-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+                type: type,
+                to: toEmail,
+                subject: subject,
+                body: body,
+                sentAt: new Date().toISOString()
+            };
+            appDb.sentEmails.push(emailRecord);
+            saveAppDb();
+            return emailRecord;
         }
 
         function showAuthModal(mode) {
@@ -3858,18 +4026,36 @@
             const registerTab = document.getElementById('register-tab');
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
+            const resetForm = document.getElementById('reset-form');
 
             if (tab === 'register') {
                 registerTab.classList.add('active');
                 loginTab.classList.remove('active');
                 registerForm.classList.add('active');
                 loginForm.classList.remove('active');
+                if (resetForm) resetForm.classList.remove('active');
+            } else if (tab === 'reset') {
+                registerTab.classList.remove('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.remove('active');
+                loginForm.classList.remove('active');
+                if (resetForm) resetForm.classList.add('active');
             } else {
                 loginTab.classList.add('active');
                 registerTab.classList.remove('active');
                 loginForm.classList.add('active');
                 registerForm.classList.remove('active');
+                if (resetForm) resetForm.classList.remove('active');
             }
+        }
+
+        function openResetPasswordForm() {
+            const loginEmail = document.getElementById('login-email');
+            const resetEmail = document.getElementById('reset-email');
+            if (loginEmail && resetEmail && loginEmail.value.trim()) {
+                resetEmail.value = loginEmail.value.trim().toLowerCase();
+            }
+            switchAuthTab('reset');
         }
 
         function registerUser(event) {
@@ -3887,6 +4073,24 @@
             const newUser = { name, email, password };
             users.push(newUser);
             currentUser = { name, email };
+            if (!appDb.profilesByEmail[email]) {
+                appDb.profilesByEmail[email] = {
+                    name: name,
+                    email: email,
+                    phone: '',
+                    address: '',
+                    city: '',
+                    state: '',
+                    zip: '',
+                    country: ''
+                };
+            }
+            createEmailConfirmation(
+                'registration',
+                email,
+                'Registration Confirmation',
+                `Hi ${name}, your TechParts account is now active.`
+            );
             saveAuthToLocalStorage();
             updateAuthUI();
             closeAuthModal({ target: { id: 'auth-modal' } });
@@ -3911,12 +4115,49 @@
             showNotification(`Welcome back, ${user.name}!`);
         }
 
+        function resetPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('reset-email').value.trim().toLowerCase();
+            const password = document.getElementById('reset-password').value;
+            const confirmPassword = document.getElementById('reset-confirm-password').value;
+
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match.');
+                return;
+            }
+
+            const user = users.find(u => u.email === email);
+            if (!user) {
+                showNotification('No account found for this email.');
+                return;
+            }
+
+            user.password = password;
+            appDb.passwordResets.push({
+                email: email,
+                changedAt: new Date().toISOString()
+            });
+            saveAuthToLocalStorage();
+            createEmailConfirmation(
+                'password_reset',
+                email,
+                'Password Reset Confirmation',
+                'Your TechParts password has been changed successfully.'
+            );
+            switchAuthTab('login');
+            showNotification('Password reset successful. Please login.');
+        }
+
         function logoutUser() {
             const activePage = document.querySelector('.page-section.active');
             currentUser = null;
             saveAuthToLocalStorage();
             updateAuthUI();
-            if (activePage && (activePage.id === 'cart' || activePage.id === 'tracking')) {
+            if (activePage && (activePage.id === 'cart' || activePage.id === 'tracking' || activePage.id === 'profile')) {
                 showPage('home');
             }
             showNotification('Logged out successfully.');
@@ -3927,6 +4168,7 @@
             const authStatus = document.getElementById('auth-status');
             const trackOrdersBtn = document.getElementById('track-orders-btn');
             const cartNavIcon = document.getElementById('cart-nav-icon');
+            const profileBtn = document.getElementById('profile-btn');
 
             if (!accountBtn || !authStatus) return;
 
@@ -3936,13 +4178,111 @@
                 authStatus.textContent = `Hi, ${currentUser.name}`;
                 if (trackOrdersBtn) trackOrdersBtn.style.display = 'inline-block';
                 if (cartNavIcon) cartNavIcon.style.display = 'block';
+                if (profileBtn) profileBtn.classList.remove('nav-hidden');
             } else {
                 accountBtn.textContent = 'Account';
                 accountBtn.onclick = function() { showAuthModal('login'); };
                 authStatus.textContent = '';
                 if (trackOrdersBtn) trackOrdersBtn.style.display = 'none';
                 if (cartNavIcon) cartNavIcon.style.display = 'none';
+                if (profileBtn) profileBtn.classList.add('nav-hidden');
             }
+        }
+
+        function getCurrentUserProfile() {
+            if (!currentUser || !currentUser.email) return null;
+            if (!appDb.profilesByEmail[currentUser.email]) {
+                appDb.profilesByEmail[currentUser.email] = {
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    phone: '',
+                    address: '',
+                    city: '',
+                    state: '',
+                    zip: '',
+                    country: ''
+                };
+                saveAppDb();
+            }
+            return appDb.profilesByEmail[currentUser.email];
+        }
+
+        function renderProfile() {
+            const profile = getCurrentUserProfile();
+            if (!profile) return;
+
+            document.getElementById('profile-name').value = profile.name || '';
+            document.getElementById('profile-email').value = profile.email || '';
+            document.getElementById('profile-phone').value = profile.phone || '';
+            document.getElementById('profile-address').value = profile.address || '';
+            document.getElementById('profile-city').value = profile.city || '';
+            document.getElementById('profile-state').value = profile.state || '';
+            document.getElementById('profile-zip').value = profile.zip || '';
+            document.getElementById('profile-country').value = profile.country || '';
+
+            const emailProofCount = appDb.sentEmails.filter(mail => mail.to === currentUser.email).length;
+            const resetCount = appDb.passwordResets.filter(reset => reset.email === currentUser.email).length;
+
+            document.getElementById('profile-stats').innerHTML = `
+                <div class="profile-stat">
+                    <div class="profile-stat-label">Orders</div>
+                    <div class="profile-stat-value">${orders.length}</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-label">Email Proofs</div>
+                    <div class="profile-stat-value">${emailProofCount}</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="profile-stat-label">Password Resets</div>
+                    <div class="profile-stat-value">${resetCount}</div>
+                </div>
+            `;
+        }
+
+        function saveProfile() {
+            const profile = getCurrentUserProfile();
+            if (!profile) {
+                showNotification('Please login first.');
+                return;
+            }
+
+            profile.name = document.getElementById('profile-name').value.trim();
+            profile.phone = document.getElementById('profile-phone').value.trim();
+            profile.address = document.getElementById('profile-address').value.trim();
+            profile.city = document.getElementById('profile-city').value.trim();
+            profile.state = document.getElementById('profile-state').value.trim();
+            profile.zip = document.getElementById('profile-zip').value.trim();
+            profile.country = document.getElementById('profile-country').value.trim();
+
+            const user = users.find(u => u.email === currentUser.email);
+            if (user) {
+                user.name = profile.name || user.name;
+                currentUser.name = user.name;
+            }
+
+            saveAuthToLocalStorage();
+            saveAppDb();
+            updateAuthUI();
+            showNotification('Profile saved successfully.');
+        }
+
+        function prefillCheckoutFromProfile() {
+            const profile = getCurrentUserProfile();
+            if (!profile) return;
+            const setIfEmpty = (id, value) => {
+                const element = document.getElementById(id);
+                if (element && !element.value.trim() && value) {
+                    element.value = value;
+                }
+            };
+            setIfEmpty('fullname', profile.name);
+            setIfEmpty('email', profile.email);
+            setIfEmpty('phone', profile.phone);
+            setIfEmpty('address', profile.address);
+            setIfEmpty('city', profile.city);
+            setIfEmpty('state', profile.state);
+            setIfEmpty('zip', profile.zip);
+            setIfEmpty('country', profile.country);
         }
 
         // Show Notification
