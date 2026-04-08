@@ -426,6 +426,12 @@
             font-size: 4rem;
         }
 
+        .product-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
         .product-info {
             padding: 1.5rem;
         }
@@ -571,6 +577,14 @@
             font-weight: 700;
             background: #16213e;
             color: white;
+        }
+
+        .inventory-qty-input {
+            width: 95px;
+            padding: 0.45rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
         }
 
         .inventory-admin-panel {
@@ -1523,17 +1537,45 @@
 
                         <h3 class="section-title" style="margin-top: 2rem;">Payment Information</h3>
                         <div class="form-group">
-                            <label>Card Number</label>
-                            <input type="text" placeholder="1234 5678 9012 3456" required>
+                            <label>Payment Method</label>
+                            <select id="payment-method" onchange="updatePaymentFields()">
+                                <option value="card" selected>Card (Credit/Debit)</option>
+                                <option value="gcash">GCash</option>
+                                <option value="cod">Cash on Delivery (COD)</option>
+                            </select>
                         </div>
-                        <div class="form-row">
+
+                        <div id="payment-card-fields">
                             <div class="form-group">
-                                <label>Expiry Date</label>
-                                <input type="text" placeholder="MM/YY" required>
+                                <label>Card Number</label>
+                                <input id="card-number" type="text" inputmode="numeric" autocomplete="off" placeholder="1234 5678 9012 3456">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Expiry Date</label>
+                                    <input id="card-expiry" type="text" inputmode="numeric" autocomplete="off" placeholder="MM/YY">
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input id="card-cvv" type="text" inputmode="numeric" autocomplete="off" placeholder="123">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="payment-gcash-fields" style="display:none;">
+                            <div class="form-group">
+                                <label>GCash Mobile Number</label>
+                                <input id="gcash-number" type="text" inputmode="tel" autocomplete="off" placeholder="09xxxxxxxxx">
                             </div>
                             <div class="form-group">
-                                <label>CVV</label>
-                                <input type="text" placeholder="123" required>
+                                <label>GCash Name (Optional)</label>
+                                <input id="gcash-name" type="text" autocomplete="off" placeholder="Juan Dela Cruz">
+                            </div>
+                        </div>
+
+                        <div id="payment-cod-fields" style="display:none;">
+                            <div style="font-size: 0.9rem; color: #5e6b7a; margin-top: 0.25rem;">
+                                You will pay upon delivery (COD). Please prepare the exact amount if possible.
                             </div>
                         </div>
                     </div>
@@ -3154,6 +3196,7 @@
         const inventoryDbKey = 'inventoryByProductId';
         const inventoryAdminSessionKey = 'inventoryAdminUnlocked';
         const inventoryAdminPassword = 'admin123';
+        const DEFAULT_IN_STOCK_QTY = 10;
         const appDbKey = 'techparts_simple_db_v1';
         let inventoryByProductId = {};
         let siteDb = {
@@ -3230,6 +3273,50 @@
             return icons[category] || '📦';
         }
 
+        function getProductThumbnailDataUri(product) {
+            const name = (product.name || '').trim();
+            const words = name.split(/\s+/).filter(Boolean);
+            const initials = (words.length ? words.slice(0, 2).map(w => w[0]).join('') : 'TP').toUpperCase();
+
+            const palettes = {
+                'GPUs': ['#00d4ff', '#16213e'],
+                'Processors': ['#ffb703', '#fb8500'],
+                'Memory': ['#8ecae6', '#219ebc'],
+                'Storage': ['#80ed99', '#38a3a5'],
+                'Motherboards': ['#f72585', '#b5179e'],
+                'Power Supply': ['#ffd166', '#ef476f'],
+                'Cases': ['#06d6a0', '#1b9aaa'],
+                'Cooling': ['#e0fbfc', '#98c1d9']
+            };
+
+            const colors = palettes[product.category] || ['#00d4ff', '#16213e'];
+            const c1 = colors[0];
+            const c2 = colors[1];
+
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+                    <defs>
+                        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="${c1}"/>
+                            <stop offset="1" stop-color="${c2}"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="600" height="400" rx="28" fill="url(#g)"/>
+                    <circle cx="110" cy="90" r="64" fill="rgba(255,255,255,0.18)"/>
+                    <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle"
+                        font-size="120" font-family="Arial, Helvetica, sans-serif" font-weight="800" fill="white">
+                        ${initials}
+                    </text>
+                    <text x="50%" y="84%" dominant-baseline="middle" text-anchor="middle"
+                        font-size="26" font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="rgba(255,255,255,0.92)">
+                        ${product.category}
+                    </text>
+                </svg>
+            `.trim();
+
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
         function getUniqueCategories() {
             return ['All', ...new Set(products.map(product => product.category))];
         }
@@ -3265,10 +3352,17 @@
             }
 
             productsToRender.forEach(product => {
-                const isInStock = getProductStock(product.id);
+                const qty = getProductStockQty(product.id);
+                const isInStock = qty > 0;
                 const productHTML = `
                     <div class="product-card">
-                        <div class="product-image">${getProductIconByCategory(product.category)}</div>
+                        <div class="product-image">
+                            <img
+                                class="product-thumb"
+                                src="${getProductThumbnailDataUri(product)}"
+                                alt="${product.name}"
+                            />
+                        </div>
                         <div class="product-info">
                             ${product.badge ? `<div class="badge">${product.badge}</div>` : ''}
                             <div class="product-name">${product.name}</div>
@@ -3283,7 +3377,7 @@
                                 </div>
                                 <button class="add-to-cart-btn" onclick="addToCart(${product.id})" ${!isInStock ? 'disabled' : ''}>${isInStock ? 'Add' : 'Out of Stock'}</button>
                             </div>
-                            <div class="${isInStock ? 'in-stock' : 'out-of-stock'}">${isInStock ? '✓ In Stock' : '✕ Out of Stock'}</div>
+                            <div class="${isInStock ? 'in-stock' : 'out-of-stock'}">${isInStock ? `✓ In Stock (${qty})` : '✕ Out of Stock'}</div>
                         </div>
                     </div>
                 `;
@@ -3327,11 +3421,18 @@
 
             const product = products.find(p => p.id === productId);
             if (!product) return;
-            if (!getProductStock(productId)) {
+            const availableQty = getProductStockQty(productId);
+            if (availableQty <= 0) {
                 showNotification(`${product.name} is out of stock.`);
                 return;
             }
             const existingItem = cart.find(item => item.id === productId);
+
+            const currentQty = existingItem ? existingItem.quantity : 0;
+            if (currentQty + 1 > availableQty) {
+                showNotification(`Only ${availableQty} left in stock for ${product.name}.`);
+                return;
+            }
 
             if (existingItem) {
                 existingItem.quantity += 1;
@@ -3419,7 +3520,19 @@
 
         // Cart Operations
         function increaseQty(index) {
-            cart[index].quantity += 1;
+            const item = cart[index];
+            if (!item) return;
+            const availableQty = getProductStockQty(item.id);
+            if (availableQty <= 0) {
+                showNotification(`${item.name} is out of stock.`);
+                return;
+            }
+            if (item.quantity + 1 > availableQty) {
+                showNotification(`Only ${availableQty} left in stock for ${item.name}.`);
+                return;
+            }
+
+            item.quantity += 1;
             updateCartCount();
             displayCart();
             saveToLocalStorage();
@@ -3474,6 +3587,7 @@
             checkoutItems.innerHTML = html;
             prefillCheckoutFromProfile();
             updateCheckoutTotals();
+            updatePaymentFields();
         }
 
         function updateShippingCost() {
@@ -3503,6 +3617,33 @@
             document.getElementById('total-amount').textContent = total.toFixed(2);
         }
 
+        function updatePaymentFields() {
+            const methodEl = document.getElementById('payment-method');
+            const method = methodEl ? methodEl.value : 'card';
+
+            const cardFields = document.getElementById('payment-card-fields');
+            const gcashFields = document.getElementById('payment-gcash-fields');
+            const codFields = document.getElementById('payment-cod-fields');
+
+            if (cardFields) cardFields.style.display = method === 'card' ? 'block' : 'none';
+            if (gcashFields) gcashFields.style.display = method === 'gcash' ? 'block' : 'none';
+            if (codFields) codFields.style.display = method === 'cod' ? 'block' : 'none';
+
+            const setRequired = (id, required) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.required = !!required;
+            };
+
+            // Only require fields for the selected payment method.
+            setRequired('card-number', method === 'card');
+            setRequired('card-expiry', method === 'card');
+            setRequired('card-cvv', method === 'card');
+
+            setRequired('gcash-number', method === 'gcash');
+            setRequired('gcash-name', false);
+        }
+
         // Place Order
         function placeOrder() {
             const fullname = document.getElementById('fullname').value;
@@ -3514,11 +3655,52 @@
             const zip = document.getElementById('zip').value;
             const country = document.getElementById('country').value;
             const shippingMethod = document.getElementById('shipping-method').value;
+            const paymentMethod = (document.getElementById('payment-method')?.value) || 'card';
 
             // Validate form
             if (!fullname || !email || !phone || !address || !city || !state || !zip || !country) {
                 alert('Please fill in all fields');
                 return;
+            }
+
+            // Validate payment method fields (simulated - no real processing)
+            let paymentDetails = {};
+            let paymentStatus = 'paid';
+            if (paymentMethod === 'card') {
+                const cardNumber = (document.getElementById('card-number')?.value || '').trim();
+                const cardExpiry = (document.getElementById('card-expiry')?.value || '').trim();
+                const cardCvv = (document.getElementById('card-cvv')?.value || '').trim();
+                if (!cardNumber || !cardExpiry || !cardCvv) {
+                    alert('Please fill in your card details.');
+                    return;
+                }
+                const digits = cardNumber.replace(/\D/g, '');
+                const last4 = digits.slice(-4);
+                paymentDetails = { method: 'card', last4 };
+                paymentStatus = 'paid';
+            } else if (paymentMethod === 'gcash') {
+                const gcashNumber = (document.getElementById('gcash-number')?.value || '').trim();
+                if (!gcashNumber) {
+                    alert('Please enter your GCash mobile number.');
+                    return;
+                }
+                const gcashName = (document.getElementById('gcash-name')?.value || '').trim();
+                paymentDetails = { method: 'gcash', mobile: gcashNumber, name: gcashName || null };
+                paymentStatus = 'paid';
+            } else if (paymentMethod === 'cod') {
+                paymentDetails = { method: 'cod' };
+                paymentStatus = 'cod_pending';
+            }
+
+            // Validate stock quantities before creating the order.
+            // (Cart may become stale if inventory is updated by admin.)
+            for (const item of cart) {
+                const availableQty = getProductStockQty(item.id);
+                if (item.quantity > availableQty) {
+                    alert(`Not enough stock for ${item.name}. Available: ${availableQty}. Please update your cart.`);
+                    showPage('cart');
+                    return;
+                }
             }
 
             // Create order
@@ -3534,6 +3716,9 @@
                 items: JSON.parse(JSON.stringify(cart)),
                 shippingAddress: { fullname, email, phone, address, city, state, zip, country },
                 shippingMethod: shippingMethod,
+                paymentMethod: paymentMethod,
+                paymentDetails: paymentDetails,
+                paymentStatus: paymentStatus,
                 subtotal: subtotal,
                 shipping: shippingCost,
                 tax: tax,
@@ -3546,11 +3731,19 @@
                 'checkout',
                 email,
                 `Order ${orderId} confirmation`,
-                `Order ${orderId} confirmed. Total: ₱${total.toFixed(2)}.`
+                `Order ${orderId} confirmed. Total: ₱${total.toFixed(2)}. Payment: ${getPaymentMethodName(paymentMethod)}.`
             );
             order.proofEmailId = checkoutEmail.id;
 
             orders.push(order);
+
+            // Decrement inventory based on purchased quantities.
+            cart.forEach(item => {
+                const currentQty = getProductStockQty(item.id);
+                inventoryByProductId[item.id] = Math.max(0, currentQty - item.quantity);
+            });
+            saveInventoryDatabase();
+
             saveToLocalStorage();
             
             // Clear cart
@@ -3621,6 +3814,16 @@
             if (confirmed) {
                 const order = orders[orderIndex];
                 order.status = 'cancelled';
+                
+                // Restore inventory quantities for cancelled orders.
+                if (order && Array.isArray(order.items)) {
+                    order.items.forEach(item => {
+                        const currentQty = getProductStockQty(item.id);
+                        inventoryByProductId[item.id] = currentQty + item.quantity;
+                    });
+                    saveInventoryDatabase();
+                }
+
                 saveToLocalStorage();
                 showNotification(`Order ${orderId} has been cancelled successfully! A refund will be processed within 5-7 business days.`);
                 displayOrders();
@@ -3736,6 +3939,7 @@
                             <div class="delivery-info">
                                 <p><strong>Current Location:</strong> ${order.timeline[Math.min(currentStatus, 3)].location}</p>
                                 <p style="margin-top: 0.5rem;"><strong>Shipping Method:</strong> ${getShippingMethodName(order.shippingMethod)}</p>
+                                <p style="margin-top: 0.5rem;"><strong>Payment Method:</strong> ${getPaymentMethodName(order.paymentMethod)}</p>
                                 <p style="margin-top: 0.5rem;"><strong>Tracking Progress:</strong> ${Math.round((currentStatus / 4) * 100)}%</p>
                             </div>
                             <div class="estimated-delivery">
@@ -3832,6 +4036,15 @@
             return methods[method] || method;
         }
 
+        function getPaymentMethodName(method) {
+            const methods = {
+                'card': 'Card (Credit/Debit)',
+                'gcash': 'GCash',
+                'cod': 'Cash on Delivery (COD)'
+            };
+            return methods[method] || (method ? method : 'N/A');
+        }
+
         function formatDate(date) {
             const d = new Date(date);
             const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -3925,18 +4138,30 @@
                 inventoryByProductId = JSON.parse(savedInventory);
             }
 
-            const defaultOutOfStock = {
-                9: true,
-                24: true,
-                67: true
+            const defaultStockQtyByProductId = {
+                9: 0,
+                24: 0,
+                67: 0
             };
 
-            // Make inventory simple and functional: every product defaults to in stock,
-            // with a few sample out-of-stock items.
+            // Normalize inventory values (legacy booleans -> quantities).
+            // This allows inventory to track stock quantities instead of only in/out.
             products.forEach(product => {
-                if (typeof inventoryByProductId[product.id] !== 'boolean') {
-                    inventoryByProductId[product.id] = !defaultOutOfStock[product.id];
+                const raw = inventoryByProductId[product.id];
+
+                if (typeof raw === 'boolean') {
+                    inventoryByProductId[product.id] = raw ? DEFAULT_IN_STOCK_QTY : 0;
+                    return;
                 }
+
+                if (typeof raw === 'number' && Number.isFinite(raw)) {
+                    inventoryByProductId[product.id] = Math.max(0, Math.floor(raw));
+                    return;
+                }
+
+                const defaultQty = defaultStockQtyByProductId[product.id];
+                inventoryByProductId[product.id] =
+                    (typeof defaultQty === 'number' && Number.isFinite(defaultQty)) ? defaultQty : DEFAULT_IN_STOCK_QTY;
             });
 
             saveInventoryDatabase();
@@ -3948,11 +4173,22 @@
         }
 
         function getProductStock(productId) {
-            return inventoryByProductId[productId] !== false;
+            return getProductStockQty(productId) > 0;
         }
 
         function setProductStock(productId, inStock) {
-            inventoryByProductId[productId] = !!inStock;
+            setProductStockQty(productId, inStock ? DEFAULT_IN_STOCK_QTY : 0);
+        }
+
+        function getProductStockQty(productId) {
+            const raw = inventoryByProductId[productId];
+            const qty = Number(raw);
+            if (!Number.isFinite(qty)) return 0;
+            return Math.max(0, Math.floor(qty));
+        }
+
+        function setProductStockQty(productId, qty) {
+            inventoryByProductId[productId] = Math.max(0, Math.floor(Number(qty)));
             saveInventoryDatabase();
         }
 
@@ -3961,15 +4197,32 @@
             if (!inventoryList) return;
 
             inventoryList.innerHTML = products.map(product => {
-                const inStock = getProductStock(product.id);
+                const qty = getProductStockQty(product.id);
+                const inStock = qty > 0;
                 return `
                     <div class="inventory-row">
                         <div>
                             <strong>${product.name}</strong>
                             <div style="font-size: 0.85rem; color: #5a6878;">${product.category} • ₱${product.price}</div>
                         </div>
-                        <span class="stock-badge ${inStock ? 'in' : 'out'}">${inStock ? 'In Stock' : 'Out of Stock'}</span>
-                        <button class="inventory-toggle-btn" onclick="toggleInventoryStock(${product.id})">${inStock ? 'Mark Out' : 'Mark In'}</button>
+                        <span class="stock-badge ${inStock ? 'in' : 'out'}">${inStock ? `In Stock (${qty})` : 'Out of Stock'}</span>
+                        <div style="display:flex; gap:0.5rem; align-items:center; justify-content:flex-end;">
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                class="inventory-qty-input"
+                                id="inventory-qty-${product.id}"
+                                value="${qty}"
+                            />
+                            <button
+                                class="inventory-toggle-btn"
+                                style="background:#00d4ff; color:#16213e;"
+                                onclick="updateInventoryQty(${product.id})"
+                            >
+                                Update
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -3977,6 +4230,17 @@
 
         function toggleInventoryStock(productId) {
             setProductStock(productId, !getProductStock(productId));
+            renderInventoryPage();
+            applyProductFilters();
+            showNotification('Stock updated.');
+        }
+
+        function updateInventoryQty(productId) {
+            const input = document.getElementById(`inventory-qty-${productId}`);
+            if (!input) return;
+
+            const qty = Math.max(0, Math.floor(Number(input.value)));
+            setProductStockQty(productId, qty);
             renderInventoryPage();
             applyProductFilters();
             showNotification('Stock updated.');

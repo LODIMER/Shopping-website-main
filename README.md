@@ -24,7 +24,7 @@ The system provides a simple e-commerce flow:
 
 - **Product catalog**
   - Product list rendered from a JavaScript array
-  - Category-based product icons
+  - Product thumbnails (auto-generated)
   - Category filter chips on Products page
   - Real-time search tied to Products page
 
@@ -36,9 +36,13 @@ The system provides a simple e-commerce flow:
 
 - **Checkout and orders**
   - Shipping address and payment form
+  - Payment method selection: Card, GCash, COD (simulated)
   - Shipping method with dynamic totals
   - Order creation with generated order ID
   - Persisted order history
+- **Inventory (Admin)**
+  - Password-gated Inventory page
+  - Manage stock quantity per product (qty is used for cart/checkout validation)
 
 - **Order tracking**
   - Timeline-based status simulation
@@ -75,7 +79,7 @@ The system provides a simple e-commerce flow:
 - `addToCart(productId)`, `displayCart()`, `increaseQty(index)`, `decreaseQty(index)`, `removeFromCart(index)`
   - Cart operations and rendering
 
-- `displayCheckout()`, `updateShippingCost()`, `updateCheckoutTotals()`, `placeOrder()`
+- `displayCheckout()`, `updateShippingCost()`, `updateCheckoutTotals()`, `updatePaymentFields()`, `placeOrder()`
   - Checkout processing and order creation
 
 - `displayOrders()`
@@ -92,6 +96,7 @@ The app stores these keys in browser `localStorage`:
 - `currentUser`
 - `cart`
 - `orders`
+- `inventoryByProductId`
 
 ## How to Run
 
@@ -131,3 +136,6 @@ Add your screenshots in a folder named `screenshots/` in this project, then upda
 
 - This is a front-end school project and does not use a backend/database.
 - Login credentials are stored in plain text in `localStorage` for demo purposes only.
+- Payment processing (Card/GCash/COD) is simulated in the browser UI only.
+- Inventory stock quantity is stored in `localStorage` (`inventoryByProductId`) and is enforced during cart/checkout.
+- Inventory admin password is configured in `index.html` (see the `inventoryAdminPassword` constant).
