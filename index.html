@@ -442,6 +442,12 @@
             background-color: #00a8cc;
         }
 
+        .add-to-cart-btn:disabled {
+            background-color: #b8c2cc;
+            color: #5f6a75;
+            cursor: not-allowed;
+        }
+
         .badge {
             display: inline-block;
             background-color: #ff4444;
@@ -457,6 +463,106 @@
             color: #00d4ff;
             font-size: 0.9rem;
             font-weight: bold;
+        }
+
+        .out-of-stock {
+            color: #ff4444;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .inventory-admin-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.75rem;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 0.75rem 0;
+        }
+
+        .inventory-row:last-child {
+            border-bottom: none;
+        }
+
+        .stock-badge {
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .stock-badge.in {
+            background: #e6fbf0;
+            color: #0a8b4b;
+        }
+
+        .stock-badge.out {
+            background: #ffe9e9;
+            color: #b10000;
+        }
+
+        .inventory-toggle-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 0.45rem 0.8rem;
+            cursor: pointer;
+            font-weight: 700;
+            background: #16213e;
+            color: white;
+        }
+
+        .inventory-admin-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.75rem;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 0.75rem 0;
+        }
+
+        .inventory-row:last-child {
+            border-bottom: none;
+        }
+
+        .stock-badge {
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        .stock-badge.in {
+            background: #e6fbf0;
+            color: #0a8b4b;
+        }
+
+        .stock-badge.out {
+            background: #ffe9e9;
+            color: #b10000;
+        }
+
+        .inventory-toggle-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 0.45rem 0.8rem;
+            cursor: pointer;
+            font-weight: 700;
+            background: #16213e;
+            color: white;
         }
 
         /* Cart Page */
@@ -1222,6 +1328,7 @@
                 <div class="nav-section">
                     <button onclick="showPage('home')">Home</button>
                     <button onclick="showPage('products')">Products</button>
+                    <button onclick="showPage('inventory')">Inventory</button>
                     <button id="track-orders-btn" onclick="showPage('tracking')">Track Orders</button>
                     <button id="account-btn" class="account-btn" onclick="showAuthModal('login')">Account</button>
                     <span id="auth-status" class="auth-status"></span>
@@ -1402,6 +1509,18 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTORY PAGE -->
+    <div id="inventory" class="page-section">
+        <div class="container">
+            <div class="inventory-admin-panel">
+                <h2 style="color: #16213e; margin-bottom: 0.25rem;">Inventory Admin</h2>
+                <p style="color: #5e6b7a; margin-bottom: 1rem;">Toggle stock status per product. Changes are saved in the local database.</p>
+                <button class="inventory-toggle-btn" style="margin-bottom: 0.75rem;" onclick="logoutInventoryAdmin()">Admin Logout</button>
+                <div id="inventory-list"></div>
             </div>
         </div>
     </div>
@@ -2902,9 +3021,14 @@
         let currentPage = 'home';
         let selectedCategory = 'All';
         let filteredProducts = [];
+        const inventoryDbKey = 'inventoryByProductId';
+        const inventoryAdminSessionKey = 'inventoryAdminUnlocked';
+        const inventoryAdminPassword = 'admin123';
+        let inventoryByProductId = {};
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            loadInventoryDatabase();
             applyProductFilters();
             loadFromLocalStorage();
             loadAuthFromLocalStorage();
@@ -2994,6 +3118,7 @@
             }
 
             productsToRender.forEach(product => {
+                const isInStock = getProductStock(product.id);
                 const productHTML = `
                     <div class="product-card">
                         <div class="product-image">${getProductIconByCategory(product.category)}</div>
@@ -3009,9 +3134,9 @@
                                     ${product.oldPrice ? `<span class="old-price">₱${product.oldPrice}</span>` : ''}
                                     <span class="price">₱${product.price}</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(${product.id})">Add</button>
+                                <button class="add-to-cart-btn" onclick="addToCart(${product.id})" ${!isInStock ? 'disabled' : ''}>${isInStock ? 'Add' : 'Out of Stock'}</button>
                             </div>
-                            <div class="in-stock">✓ In Stock</div>
+                            <div class="${isInStock ? 'in-stock' : 'out-of-stock'}">${isInStock ? '✓ In Stock' : '✕ Out of Stock'}</div>
                         </div>
                     </div>
                 `;
@@ -3054,6 +3179,11 @@
             }
 
             const product = products.find(p => p.id === productId);
+            if (!product) return;
+            if (!getProductStock(productId)) {
+                showNotification(`${product.name} is out of stock.`);
+                return;
+            }
             const existingItem = cart.find(item => item.id === productId);
 
             if (existingItem) {
@@ -3559,6 +3689,12 @@
                 showAuthModal('login');
                 pageName = 'home';
             }
+            if (pageName === 'inventory' && !isInventoryAdminUnlocked()) {
+                const unlocked = requestInventoryAdminAccess();
+                if (!unlocked) {
+                    pageName = 'home';
+                }
+            }
 
             currentPage = pageName;
 
@@ -3579,6 +3715,8 @@
                 displayOrders();
             } else if (pageName === 'products') {
                 applyProductFilters();
+            } else if (pageName === 'inventory') {
+                renderInventoryPage();
             }
 
             // Scroll to top
@@ -3587,6 +3725,90 @@
         }
 
         // Local Storage Functions
+        function loadInventoryDatabase() {
+            const savedInventory = localStorage.getItem(inventoryDbKey);
+            if (savedInventory) {
+                inventoryByProductId = JSON.parse(savedInventory);
+            }
+
+            const defaultOutOfStock = {
+                9: true,
+                24: true,
+                67: true
+            };
+
+            // Make inventory simple and functional: every product defaults to in stock,
+            // with a few sample out-of-stock items.
+            products.forEach(product => {
+                if (typeof inventoryByProductId[product.id] !== 'boolean') {
+                    inventoryByProductId[product.id] = !defaultOutOfStock[product.id];
+                }
+            });
+
+            saveInventoryDatabase();
+        }
+
+        function saveInventoryDatabase() {
+            localStorage.setItem(inventoryDbKey, JSON.stringify(inventoryByProductId));
+        }
+
+        function getProductStock(productId) {
+            return inventoryByProductId[productId] !== false;
+        }
+
+        function setProductStock(productId, inStock) {
+            inventoryByProductId[productId] = !!inStock;
+            saveInventoryDatabase();
+        }
+
+        function renderInventoryPage() {
+            const inventoryList = document.getElementById('inventory-list');
+            if (!inventoryList) return;
+
+            inventoryList.innerHTML = products.map(product => {
+                const inStock = getProductStock(product.id);
+                return `
+                    <div class="inventory-row">
+                        <div>
+                            <strong>${product.name}</strong>
+                            <div style="font-size: 0.85rem; color: #5a6878;">${product.category} • ₱${product.price}</div>
+                        </div>
+                        <span class="stock-badge ${inStock ? 'in' : 'out'}">${inStock ? 'In Stock' : 'Out of Stock'}</span>
+                        <button class="inventory-toggle-btn" onclick="toggleInventoryStock(${product.id})">${inStock ? 'Mark Out' : 'Mark In'}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleInventoryStock(productId) {
+            setProductStock(productId, !getProductStock(productId));
+            renderInventoryPage();
+            applyProductFilters();
+            showNotification('Stock updated.');
+        }
+
+        function isInventoryAdminUnlocked() {
+            return localStorage.getItem(inventoryAdminSessionKey) === 'true';
+        }
+
+        function requestInventoryAdminAccess() {
+            const entered = window.prompt('Enter admin password to manage inventory:');
+            if (!entered) return false;
+            if (entered !== inventoryAdminPassword) {
+                showNotification('Incorrect admin password.');
+                return false;
+            }
+            localStorage.setItem(inventoryAdminSessionKey, 'true');
+            showNotification('Inventory admin access granted.');
+            return true;
+        }
+
+        function logoutInventoryAdmin() {
+            localStorage.removeItem(inventoryAdminSessionKey);
+            showNotification('Inventory admin logged out.');
+            showPage('home');
+        }
+
         function saveToLocalStorage() {
             localStorage.setItem('cart', JSON.stringify(cart));
             localStorage.setItem('orders', JSON.stringify(orders));
