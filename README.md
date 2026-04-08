@@ -43,6 +43,7 @@ The system provides a simple e-commerce flow:
 - **Inventory (Admin)**
   - Password-gated Inventory page
   - Manage stock quantity per product (qty is used for cart/checkout validation)
+  - Admin Orders page: view buyer info + payment method for each order
 
 - **Order tracking**
   - Timeline-based status simulation
