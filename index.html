@@ -1768,6 +1768,30 @@
         </div>
     </div>
 
+    <!-- INVENTORY ADMIN AUTH MODAL -->
+    <div id="admin-auth-modal" class="auth-modal" onclick="closeAdminAuthModal(event)">
+        <div class="auth-card">
+            <div class="auth-card-header">
+                <strong>Inventory Admin</strong>
+                <button style="background:none;border:none;color:white;font-size:1.25rem;cursor:pointer;" onclick="closeAdminAuthModal(event)">×</button>
+            </div>
+            <form id="admin-login-form" class="auth-form active" onsubmit="loginInventoryAdmin(event)" style="padding: 1.25rem;">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Username</label>
+                    <input type="text" id="admin-username" placeholder="admin" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter admin password" required>
+                </div>
+                <button class="auth-submit" type="submit" style="width:100%;">Login</button>
+                <div style="margin-top: 0.75rem; font-size: 0.9rem; color: #5e6b7a; text-align:center;">
+                    This is a local demo admin gate (no backend).
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast-notification" class="toast-notification"></div>
 
     <script>
@@ -3192,10 +3216,12 @@
         let currentPage = 'home';
         let selectedCategory = 'All';
         let filteredProducts = [];
+        let pendingPageAfterAdminLogin = null;
         const siteDbKey = 'techparts_site_db_v2';
         const inventoryDbKey = 'inventoryByProductId';
         const inventoryAdminSessionKey = 'inventoryAdminUnlocked';
-        const inventoryAdminPassword = 'admin123';
+        const inventoryAdminPassword = 'kenjhee';
+        const inventoryAdminUsername = 'admin';
         const DEFAULT_IN_STOCK_QTY = 10;
         const appDbKey = 'techparts_simple_db_v1';
         let inventoryByProductId = {};
@@ -4064,10 +4090,9 @@
                 pageName = 'home';
             }
             if (pageName === 'inventory' && !isInventoryAdminUnlocked()) {
-                const unlocked = requestInventoryAdminAccess();
-                if (!unlocked) {
-                    pageName = 'home';
-                }
+                pendingPageAfterAdminLogin = 'inventory';
+                requestInventoryAdminAccess();
+                pageName = 'home';
             }
 
             currentPage = pageName;
@@ -4251,15 +4276,71 @@
         }
 
         function requestInventoryAdminAccess() {
-            const entered = window.prompt('Enter admin password to manage inventory:');
-            if (!entered) return false;
-            if (entered !== inventoryAdminPassword) {
-                showNotification('Incorrect admin password.');
-                return false;
+            // Open the admin login modal. Unlock happens in `loginInventoryAdmin`.
+            showInventoryAdminAuthModal();
+            return true;
+        }
+
+        function showInventoryAdminAuthModal() {
+            const modal = document.getElementById('admin-auth-modal');
+            if (!modal) return;
+
+            const usernameEl = document.getElementById('admin-username');
+            const passwordEl = document.getElementById('admin-password');
+
+            if (usernameEl) usernameEl.value = inventoryAdminUsername;
+            if (passwordEl) passwordEl.value = '';
+
+            modal.classList.add('active');
+
+            // Focus password field for quick login.
+            if (passwordEl && typeof passwordEl.focus === 'function') {
+                setTimeout(() => passwordEl.focus(), 0);
             }
+        }
+
+        function closeAdminAuthModal(event) {
+            // Close only when clicking outside the card OR clicking the × button.
+            if (event && event.target) {
+                const target = event.target;
+                if (target.id === 'admin-auth-modal') {
+                    const modal = document.getElementById('admin-auth-modal');
+                    if (modal) modal.classList.remove('active');
+                }
+                if (target.id !== 'admin-auth-modal' && target.tagName !== 'BUTTON' && target.type !== 'button') {
+                    return;
+                }
+            }
+
+            const modal = document.getElementById('admin-auth-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function loginInventoryAdmin(event) {
+            event.preventDefault();
+
+            const username = (document.getElementById('admin-username')?.value || '').trim();
+            const password = document.getElementById('admin-password')?.value || '';
+
+            if (!username || !password) {
+                showNotification('Please enter admin credentials.');
+                return;
+            }
+
+            if (username !== inventoryAdminUsername || password !== inventoryAdminPassword) {
+                showNotification('Invalid admin username or password.');
+                return;
+            }
+
             localStorage.setItem(inventoryAdminSessionKey, 'true');
             showNotification('Inventory admin access granted.');
-            return true;
+
+            const modal = document.getElementById('admin-auth-modal');
+            if (modal) modal.classList.remove('active');
+
+            const targetPage = pendingPageAfterAdminLogin || 'inventory';
+            pendingPageAfterAdminLogin = null;
+            showPage(targetPage);
         }
 
         function logoutInventoryAdmin() {
