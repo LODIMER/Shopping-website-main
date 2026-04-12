@@ -1691,7 +1691,7 @@
         <div class="container">
             <div class="inventory-admin-panel">
                 <h2 style="color: #16213e; margin-bottom: 0.25rem;">Admin Orders</h2>
-                <p style="color: #5e6b7a; margin-bottom: 1rem;">See who ordered and which payment method they used.</p>
+                <p style="color: #5e6b7a; margin-bottom: 1rem;">View buyers and payments. Use <strong>Tracking stage</strong> on each order so customers see processing, shipped, and delivery status on <strong>Track Orders</strong>.</p>
                 <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; margin-bottom: 0.75rem;">
                     <button class="inventory-toggle-btn" style="background:#00d4ff; color:#16213e;" onclick="showPage('inventory')">Back to Inventory</button>
                     <button class="inventory-toggle-btn" onclick="logoutInventoryAdmin()">Admin Logout</button>
@@ -4307,7 +4307,7 @@
                     return;
                 }
 
-                const currentStatus = simulateDeliveryStatus(order);
+                const currentStatus = getEffectiveTrackingStep(order);
                 
                 let timelineHTML = '';
                 order.timeline.forEach((step, stepIndex) => {
@@ -4351,6 +4351,7 @@
                                 <p style="margin-top: 0.5rem;"><strong>Payment Method:</strong> ${getPaymentMethodName(order.paymentMethod)}</p>
                                 <p style="margin-top: 0.5rem;"><strong>Tracking Progress:</strong> ${Math.round((currentStatus / 4) * 100)}%</p>
                                 ${order.proofEmailId ? `<p style="margin-top: 0.5rem;"><strong>Email confirmation ID:</strong> <span style="font-family: ui-monospace, monospace;">${order.proofEmailId}</span></p>` : ''}
+                                ${Number.isInteger(order.adminTrackingStep) ? `<p style="margin-top: 0.65rem; padding: 0.65rem; background: #e8f6ff; border-radius: 6px; font-size: 0.88rem; color: #0b4f6c;"><strong>Store update:</strong> Your order status was updated by our team. Your package is being processed and shipped to <strong>${order.shippingAddress.city}, ${order.shippingAddress.country}</strong>.</p>` : ''}
                             </div>
                             <div class="estimated-delivery">
                                 📅 Estimated Delivery: ${formatDate(deliveryDate)}
@@ -4407,16 +4408,16 @@
             trackingContent.innerHTML = ordersHTML;
         }
 
-        // Simulate Delivery Status
+        // Simulate Delivery Status (used when admin has not set a manual tracking stage)
         function simulateDeliveryStatus(order) {
+            if (!order || !Array.isArray(order.timeline) || order.timeline.length < 5) {
+                return 0;
+            }
             const now = new Date();
-            const orderTime = new Date(order.date);
-            const elapsedTime = now - orderTime;
             const totalSteps = 4;
 
-            // Simulate progression based on elapsed time
             for (let i = 0; i <= totalSteps; i++) {
-                const stepTime = order.timeline[i].date;
+                const stepTime = new Date(order.timeline[i].date);
                 if (now < stepTime) {
                     return Math.max(0, i - 1);
                 }
@@ -4424,17 +4425,58 @@
             return totalSteps;
         }
 
+        /** Last completed timeline step index (0–4). Admin override wins over time simulation. */
+        function getEffectiveTrackingStep(order) {
+            if (!order || order.status === 'cancelled') {
+                return -1;
+            }
+            const n = order.adminTrackingStep;
+            if (Number.isInteger(n) && n >= 0 && n <= 4) {
+                return n;
+            }
+            return simulateDeliveryStatus(order);
+        }
+
         function getDeliveryStatus(statusIndex) {
-            const statuses = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-            return statusIndex < statuses.length ? statuses[statusIndex] : 'Delivered';
+            if (statusIndex < 0) {
+                return 'Cancelled';
+            }
+            const statuses = ['Order confirmed', 'Processing', 'Shipped', 'Out for delivery', 'Delivered'];
+            const i = Math.min(Math.max(statusIndex, 0), statuses.length - 1);
+            return statuses[i];
         }
 
         function getOrderDisplayStatus(order) {
             if (order.status === 'cancelled') {
                 return 'Cancelled';
             }
-            const statusIndex = simulateDeliveryStatus(order);
+            const statusIndex = getEffectiveTrackingStep(order);
             return getDeliveryStatus(statusIndex);
+        }
+
+        function adminSetOrderTracking(orderId, value) {
+            if (!isInventoryAdminUnlocked()) {
+                showNotification('Admin login required.');
+                return;
+            }
+            const order = orders.find(o => o.id === orderId);
+            if (!order || order.status === 'cancelled') {
+                return;
+            }
+            if (value === '' || value == null) {
+                delete order.adminTrackingStep;
+                delete order.trackingUpdatedAt;
+            } else {
+                const step = parseInt(value, 10);
+                if (!Number.isInteger(step) || step < 0 || step > 4) {
+                    return;
+                }
+                order.adminTrackingStep = step;
+                order.trackingUpdatedAt = new Date().toISOString();
+            }
+            saveToLocalStorage();
+            renderAdminOrdersPage();
+            showNotification('Tracking updated. Customers see this on Track Orders.');
         }
 
         function getShippingMethodName(method) {
@@ -4674,7 +4716,7 @@
                 })();
 
                 const statusKey = order?.status === 'cancelled' ? 'cancelled' : 'processing';
-                const statusText = order?.status === 'cancelled' ? 'Cancelled' : (order?.status || 'Processing');
+                const statusText = order?.status === 'cancelled' ? 'Cancelled' : getOrderDisplayStatus(order);
                 const statusClass = `order-status-badge status-${statusKey}`;
 
                 const total = (typeof order.total === 'number') ? order.total : Number(order.total) || 0;
@@ -4683,6 +4725,29 @@
                         ${order.items.map(item => `<li>${item.name} x ${item.quantity}</li>`).join('')}
                       </ul>`
                     : '<p style="color:#666;">No items</p>';
+
+                const manualTracking = Number.isInteger(order.adminTrackingStep);
+                const trackingPanel = order.status === 'cancelled' ? '' : `
+                        <div style="margin-top: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border: 1px solid #b8e0ff;">
+                            <div style="font-weight: 700; color: #16213e; margin-bottom: 0.35rem;">Update shipment status (what the customer sees)</div>
+                            <p style="font-size: 0.82rem; color: #5d6f83; margin: 0 0 0.65rem;">
+                                The buyer’s <strong>Track Orders</strong> page uses this for the timeline and status (processing, shipped, out for delivery, delivered to home).
+                            </p>
+                            <label style="font-size: 0.85rem; display: block; margin-bottom: 0.35rem;">Tracking stage</label>
+                            <select
+                                style="max-width: 100%; padding: 0.45rem; border-radius: 6px; border: 1px solid #ccc;"
+                                onchange="adminSetOrderTracking('${order.id}', this.value)"
+                            >
+                                <option value="" ${!manualTracking ? 'selected' : ''}>Automatic (estimated from order date)</option>
+                                <option value="0" ${manualTracking && order.adminTrackingStep === 0 ? 'selected' : ''}>Order confirmed</option>
+                                <option value="1" ${manualTracking && order.adminTrackingStep === 1 ? 'selected' : ''}>Processing — preparing shipment</option>
+                                <option value="2" ${manualTracking && order.adminTrackingStep === 2 ? 'selected' : ''}>Shipped — on the way to customer</option>
+                                <option value="3" ${manualTracking && order.adminTrackingStep === 3 ? 'selected' : ''}>Out for delivery (near home)</option>
+                                <option value="4" ${manualTracking && order.adminTrackingStep === 4 ? 'selected' : ''}>Delivered — completed</option>
+                            </select>
+                            ${manualTracking && order.trackingUpdatedAt ? `<p style="font-size:0.78rem; color:#5d6f83; margin:0.5rem 0 0;">Last updated: ${formatDate(order.trackingUpdatedAt)}</p>` : ''}
+                        </div>
+                    `;
 
                 return `
                     <div class="order-card" style="border-color:#00d4ff; margin-bottom: 1.5rem;">
@@ -4713,6 +4778,7 @@
                             <h4 style="margin-top: 0; margin-bottom: 0.75rem;">Items</h4>
                             ${itemsHtml}
                         </div>
+                        ${trackingPanel}
                     </div>
                 `;
             }).join('');
