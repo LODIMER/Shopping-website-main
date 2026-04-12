@@ -309,6 +309,47 @@
             color: #16213e;
         }
 
+        #email-proof-modal .auth-card {
+            max-width: 520px;
+        }
+
+        .email-confirmations-list {
+            margin-bottom: 1.25rem;
+        }
+
+        .email-confirmation-item {
+            border: 1px solid #dfeef8;
+            border-radius: 8px;
+            padding: 0.65rem 0.75rem;
+            margin-bottom: 0.6rem;
+            background: #fafcff;
+        }
+
+        .email-confirmation-item summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #16213e;
+            list-style-position: outside;
+        }
+
+        .email-confirmation-meta {
+            font-size: 0.78rem;
+            color: #5d6f83;
+            margin-top: 0.35rem;
+        }
+
+        .email-confirmation-body {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow: auto;
+            color: #333;
+        }
+
         .toast-notification {
             position: fixed;
             right: 1rem;
@@ -1668,6 +1709,10 @@
                 <p style="color: #5d6f83; margin-bottom: 0.9rem;">Manage your account and saved checkout info.</p>
                 <div id="profile-stats" class="profile-stats"></div>
 
+                <h3 class="section-title" style="margin-top: 0;">Email confirmations</h3>
+                <p style="color: #5d6f83; font-size: 0.9rem; margin-bottom: 0.75rem;">Digital proof of registration and orders (stored in this browser for demo purposes).</p>
+                <div id="profile-email-confirmations" class="email-confirmations-list"></div>
+
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" id="profile-name" placeholder="Full name">
@@ -1802,6 +1847,26 @@
                 <button class="auth-submit" type="submit">Reset Password</button>
                 <button type="button" class="auth-link-btn" onclick="switchAuthTab('login')">Back to login</button>
             </form>
+        </div>
+    </div>
+
+    <div id="email-proof-modal" class="auth-modal" onclick="closeEmailProofModal(event)">
+        <div class="auth-card" onclick="event.stopPropagation()">
+            <div class="auth-card-header">
+                <strong id="email-proof-modal-title">Email confirmation</strong>
+                <button type="button" style="background:none;border:none;color:white;font-size:1.25rem;cursor:pointer;" onclick="closeEmailProofModal(event)">×</button>
+            </div>
+            <div class="auth-form active" style="padding: 1.25rem;">
+                <p id="email-proof-modal-intro" style="color:#5d6f83; font-size:0.95rem; margin:0 0 0.75rem;"></p>
+                <div style="background:#f0f7ff; border:1px solid #cfe8ff; border-radius:8px; padding:0.85rem; margin-bottom:0.85rem;">
+                    <div style="font-size:0.78rem; color:#5d6f83;">Confirmation reference (save for your records)</div>
+                    <div id="email-proof-modal-id" style="font-family:ui-monospace,monospace; font-weight:700; color:#16213e; word-break:break-all; font-size:0.9rem;"></div>
+                </div>
+                <div style="font-size:0.8rem; color:#5d6f83; margin-bottom:0.35rem;">Message content</div>
+                <pre id="email-proof-modal-body" style="white-space:pre-wrap; font-family:inherit; font-size:0.85rem; background:#f7f8fa; padding:0.75rem; border-radius:6px; max-height:240px; overflow:auto; margin:0 0 1rem; border:1px solid #e8eaed;"></pre>
+                <p style="font-size:0.8rem; color:#7a8794; margin-bottom:1rem;">You can reopen this text anytime under Profile → Email confirmations.</p>
+                <button class="auth-submit" type="button" onclick="closeEmailProofModal(event)">OK</button>
+            </div>
         </div>
     </div>
 
@@ -4062,11 +4127,14 @@
                 timeline: generateOrderTimeline(shippingMethod)
             };
 
+            const paymentLabel = getPaymentMethodName(paymentMethod);
+            const orderConfirmationBody = buildOrderConfirmationEmailBody(order, paymentLabel);
             const checkoutEmail = createEmailConfirmation(
                 'checkout',
                 email,
-                `Order ${orderId} confirmation`,
-                `Order ${orderId} confirmed. Total: ₱${total.toFixed(2)}. Payment: ${getPaymentMethodName(paymentMethod)}.`
+                `Order ${orderId} — confirmation & receipt`,
+                orderConfirmationBody,
+                { relatedOrderId: orderId }
             );
             order.proofEmailId = checkoutEmail.id;
 
@@ -4085,8 +4153,13 @@
             cart = [];
             updateCartCount();
 
-            // Show confirmation and redirect
-            alert(`Order placed successfully!\nOrder ID: ${orderId}\n\nYou can track your order in the "Track Orders" section.`);
+            showEmailProofModal({
+                title: 'Order confirmation — digital proof',
+                intro: `Order ${orderId} is confirmed. A full receipt-style email record was saved for ${email}. Use the reference ID below if you need to show proof of purchase.`,
+                referenceId: checkoutEmail.id,
+                bodyText: orderConfirmationBody
+            });
+            showNotification(`Order ${orderId} placed. Email confirmation ID: ${checkoutEmail.id}`);
             showPage('tracking');
             displayOrders();
         }
@@ -4227,6 +4300,7 @@
                                     ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zip}<br>
                                     ${order.shippingAddress.country}
                                 </p>
+                                ${order.proofEmailId ? `<p style="margin-top: 0.75rem; font-size: 0.85rem;"><strong>Email confirmation ID:</strong> <span style="font-family: ui-monospace, monospace;">${order.proofEmailId}</span></p>` : ''}
                             </div>
                         </div>
                     `;
@@ -4276,6 +4350,7 @@
                                 <p style="margin-top: 0.5rem;"><strong>Shipping Method:</strong> ${getShippingMethodName(order.shippingMethod)}</p>
                                 <p style="margin-top: 0.5rem;"><strong>Payment Method:</strong> ${getPaymentMethodName(order.paymentMethod)}</p>
                                 <p style="margin-top: 0.5rem;"><strong>Tracking Progress:</strong> ${Math.round((currentStatus / 4) * 100)}%</p>
+                                ${order.proofEmailId ? `<p style="margin-top: 0.5rem;"><strong>Email confirmation ID:</strong> <span style="font-family: ui-monospace, monospace;">${order.proofEmailId}</span></p>` : ''}
                             </div>
                             <div class="estimated-delivery">
                                 📅 Estimated Delivery: ${formatDate(deliveryDate)}
@@ -4816,18 +4891,86 @@
             }
         }
 
-        function createEmailConfirmation(type, toEmail, subject, body) {
+        function escapeHtml(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function createEmailConfirmation(type, toEmail, subject, body, extra) {
+            const meta = extra && typeof extra === 'object' ? extra : {};
             const emailRecord = {
                 id: `MAIL-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
                 type: type,
                 to: toEmail,
                 subject: subject,
                 body: body,
-                sentAt: new Date().toISOString()
+                sentAt: new Date().toISOString(),
+                relatedOrderId: meta.relatedOrderId || null
             };
             appDb.sentEmails.push(emailRecord);
             saveAppDb();
             return emailRecord;
+        }
+
+        function closeEmailProofModal(event) {
+            if (event && event.target && event.target.id !== 'email-proof-modal' && event.target.type !== 'button' && event.target.textContent !== '×') {
+                return;
+            }
+            const modal = document.getElementById('email-proof-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function showEmailProofModal(payload) {
+            const title = document.getElementById('email-proof-modal-title');
+            const intro = document.getElementById('email-proof-modal-intro');
+            const ref = document.getElementById('email-proof-modal-id');
+            const bodyEl = document.getElementById('email-proof-modal-body');
+            const modal = document.getElementById('email-proof-modal');
+            if (!title || !intro || !ref || !bodyEl || !modal) return;
+            title.textContent = payload.title || 'Email confirmation';
+            intro.textContent = payload.intro || '';
+            ref.textContent = payload.referenceId || '';
+            bodyEl.textContent = payload.bodyText || '';
+            modal.classList.add('active');
+        }
+
+        function buildOrderConfirmationEmailBody(order, paymentLabel) {
+            const lines = [];
+            lines.push('TECHPARTS — ORDER CONFIRMATION / RECEIPT');
+            lines.push('');
+            lines.push(`Order ID: ${order.id}`);
+            lines.push(`Placed: ${formatDate(order.date)}`);
+            lines.push('');
+            lines.push('Items');
+            lines.push('----');
+            order.items.forEach(function(item) {
+                lines.push(`${item.name} × ${item.quantity}     ₱${(item.price * item.quantity).toFixed(2)}`);
+            });
+            lines.push('');
+            lines.push(`Subtotal:    ₱${order.subtotal.toFixed(2)}`);
+            lines.push(`Shipping:    ₱${order.shipping.toFixed(2)}`);
+            lines.push(`Tax (10%):   ₱${order.tax.toFixed(2)}`);
+            lines.push(`TOTAL:       ₱${order.total.toFixed(2)}`);
+            lines.push('');
+            lines.push(`Payment: ${paymentLabel}`);
+            lines.push('');
+            lines.push('Ship to');
+            lines.push('-------');
+            const a = order.shippingAddress;
+            lines.push(a.fullname);
+            if (a.email) lines.push('Email: ' + a.email);
+            if (a.phone) lines.push('Phone: ' + a.phone);
+            lines.push(a.address);
+            lines.push(`${a.city}, ${a.state} ${a.zip}`);
+            lines.push(a.country);
+            lines.push('');
+            lines.push('Keep this confirmation as proof of purchase on TechParts.');
+            lines.push('Thank you for your order.');
+            return lines.join('\n');
         }
 
         function showAuthModal(mode) {
@@ -4906,16 +5049,38 @@
                     country: ''
                 };
             }
-            createEmailConfirmation(
+            const registrationBody = [
+                'TECHPARTS — REGISTRATION CONFIRMATION',
+                '',
+                `Hi ${name},`,
+                '',
+                'Thank you for creating an account at TechParts.',
+                'Your account is active. You can sign in anytime with the email below.',
+                '',
+                `Registered email: ${email}`,
+                `Registered on: ${formatDate(new Date())}`,
+                '',
+                'If you did not register for TechParts, you can ignore this message.',
+                '',
+                '— TechParts'
+            ].join('\n');
+
+            const regMail = createEmailConfirmation(
                 'registration',
                 email,
-                'Registration Confirmation',
-                `Hi ${name}, your TechParts account is now active.`
+                'Confirm your TechParts registration',
+                registrationBody
             );
             saveAuthToLocalStorage();
             updateAuthUI();
             closeAuthModal({ target: { id: 'auth-modal' } });
-            showNotification(`Welcome, ${name}! Account created successfully.`);
+            showEmailProofModal({
+                title: 'Registration email confirmation',
+                intro: `A confirmation has been recorded for ${email}. Save the reference ID below as digital proof of registration.`,
+                referenceId: regMail.id,
+                bodyText: registrationBody
+            });
+            showNotification(`Welcome, ${name}! Confirmation reference: ${regMail.id}`);
         }
 
         function loginUser(event) {
@@ -5062,6 +5227,33 @@
                     <div class="profile-stat-value">${resetCount}</div>
                 </div>
             `;
+
+            const typeLabels = {
+                checkout: 'Order confirmation',
+                registration: 'Registration',
+                password_reset: 'Password update'
+            };
+            const mails = (appDb.sentEmails || [])
+                .filter(function(mail) { return mail.to === currentUser.email; })
+                .sort(function(a, b) { return new Date(b.sentAt) - new Date(a.sentAt); });
+            const emailsContainer = document.getElementById('profile-email-confirmations');
+            if (emailsContainer) {
+                if (mails.length === 0) {
+                    emailsContainer.innerHTML = '<p style="color:#7a8794; font-size:0.9rem;">No confirmations yet. They appear after you register or place an order.</p>';
+                } else {
+                    emailsContainer.innerHTML = mails.map(function(mail) {
+                        const typeLabel = typeLabels[mail.type] || mail.type || 'Email';
+                        const orderHint = mail.relatedOrderId ? ' · Order ' + escapeHtml(mail.relatedOrderId) : '';
+                        return (
+                            '<details class="email-confirmation-item">' +
+                            '<summary>' + escapeHtml(typeLabel) + ': ' + escapeHtml(mail.subject) + '</summary>' +
+                            '<div class="email-confirmation-meta">' + escapeHtml(formatDate(mail.sentAt)) + ' · ID ' + escapeHtml(mail.id) + orderHint + '</div>' +
+                            '<div class="email-confirmation-body">' + escapeHtml(mail.body) + '</div>' +
+                            '</details>'
+                        );
+                    }).join('');
+                }
+            }
         }
 
         function saveProfile() {

@@ -1,115 +1,164 @@
 ## TechParts Shopping Website
 
-Single-page shopping website for PC components and gaming gear.  
-Built with plain HTML, CSS, and JavaScript in one file (`index.html`), using browser `localStorage` for persistence.
+Single-page shopping site for PC components and gaming gear.  
+Built with plain **HTML, CSS, and JavaScript** in one file (`index.html`), using the browser **`localStorage`** (and `sessionStorage` for the active view) for persistence. Product photos live under the `picture/` folder and are mapped to catalog items in code.
 
-## System Summary
+## System overview
 
-The system provides a simple e-commerce flow:
+```mermaid
+flowchart TB
+    subgraph entry["1. Entry"]
+        A([User opens index.html]) --> B[Load site DB, app DB, cart, orders, users]
+        B --> C[Restore screen from URL hash #page=… or sessionStorage]
+        C --> D{Current view}
+    end
 
-- Browse products with category filters and search
-- Register/login account before adding items to cart
-- Add products to cart and manage quantity
-- Checkout and place orders
-- Track order progress in timeline view
-- Responsive layout for desktop, tablets, and mobile phones
+    subgraph browse["2. Browse & discover"]
+        D --> Home[Home — category cards]
+        D --> Products[Products — filters, search, images]
+        Home --> Products
+        Products --> PImg[Images from picture/ GPU, CPU, RAM, …]
+    end
 
-## Main Features
+    subgraph auth["3. Account"]
+        D --> Account[Account modal]
+        Account --> Reg[Register]
+        Account --> Log[Login / logout]
+        Reg --> EC1[Store registration email confirmation + proof modal]
+        Log --> Sess[currentUser in localStorage]
+    end
 
-- **Account system**
-  - Register and login modal
-  - Session state stored in `localStorage`
-  - Logout support
-  - Cart and Track Orders access only when logged in
+    subgraph shop["4. Shopping"]
+        Products --> Add{Add to cart?}
+        Add -->|Guest| NeedLogin[Notify → open login]
+        Add -->|Logged in| Cart[Cart — qty, remove]
+        NeedLogin --> Account
+        Cart --> Chk[Checkout — address, shipping, payment]
+    end
+
+    subgraph pay["5. Payment (simulated)"]
+        Chk --> PM{Payment method}
+        PM --> Card[Card fields]
+        PM --> GC[GCash]
+        PM --> PMY[PayMaya / Maya]
+        PM --> COD[Cash on delivery]
+        Card & GC & PMY & COD --> PO[placeOrder — validate stock]
+    end
+
+    subgraph order["6. Order & proof"]
+        PO --> Ord[Create order + timeline]
+        Ord --> EC2[Store order email receipt + proof modal]
+        EC2 --> Stock[Decrement inventory]
+        Stock --> Track[Track Orders — status, cancel in transit]
+        Ord --> Prof[Profile — list all email confirmations]
+    end
+
+    subgraph admin["7. Inventory admin"]
+        D --> Inv[Inventory / Admin orders]
+        Inv --> Gate{Admin unlocked?}
+        Gate -->|No| ADM[Admin login modal]
+        Gate -->|Yes| Stk[Edit stock per product]
+        ADM --> Stk
+        Stk --> AO[View orders — buyer & payment info]
+    end
+
+    style entry fill:#f8fafc
+    style browse fill:#f0f9ff
+    style auth fill:#fefce8
+    style shop fill:#f0fdf4
+    style pay fill:#fdf4ff
+    style order fill:#fff7ed
+    style admin fill:#eef2ff
+```
+
+### Simplified user journey
+
+```mermaid
+flowchart LR
+    A[Home / Products] --> B{Logged in?}
+    B -->|No| C[Register or Login]
+    B -->|Yes| D[Add to Cart]
+    C --> D
+    D --> E[Checkout]
+    E --> F[Place order]
+    F --> G[Email confirmation record]
+    G --> H[Track Orders]
+```
+
+## Main features
+
+- **Account**
+  - Register / login modal; session in `localStorage`
+  - Password reset (from login) and change password (from profile)
+  - **Registration email confirmation**: full message stored as digital proof; modal shows reference ID (`MAIL-…`)
+  - Profile: saved address fields, stats, **email confirmations inbox** (registration, orders, password notices)
 
 - **Product catalog**
-  - Product list rendered from a JavaScript array
-  - Product thumbnails (auto-generated)
-  - Category filter chips on Products page
-  - Real-time search tied to Products page
+  - Large JS product list (GPUs, CPUs, RAM, storage, motherboards, PSUs, cases, cooling)
+  - **Images** from `picture/` (with tier-based CPU photos and a few ID overrides for missing filenames)
+  - Category chips and live search (search can jump to Products)
 
-- **Cart management**
-  - Add to cart (requires login)
-  - Increase/decrease quantity
-  - Remove items
-  - Live cart count in header
+- **Cart & checkout**
+  - Cart only when logged in; quantity controls and remove
+  - Checkout: shipping methods, dynamic totals (shipping + tax)
+  - **Payment (UI only)**: Card, **GCash**, **PayMaya**, COD
+  - **Order confirmation**: receipt-style text stored + modal with reference ID; order card shows **Email confirmation ID**
 
-- **Checkout and orders**
-  - Shipping address and payment form
-  - Payment method selection: Card, GCash, COD (simulated)
-  - Shipping method with dynamic totals
-  - Order creation with generated order ID
-  - Persisted order history
-- **Inventory (Admin)**
-  - Password-gated Inventory page
-  - Manage stock quantity per product (qty is used for cart/checkout validation)
-  - Admin Orders page: view buyer info + payment method for each order
+- **Orders**
+  - Simulated delivery timeline; cancel while in transit
+  - Page persistence: **`#page=…`** in the URL and `sessionStorage` so **refresh keeps the same screen** (within auth/admin rules)
 
-- **Order tracking**
-  - Timeline-based status simulation
-  - Delivery information
-  - Cancel order while in transit
+- **Inventory (admin)**
+  - Separate admin login; per-product stock; stock enforced at add-to-cart and checkout
+  - Admin orders list with buyer and payment summary
 
-- **Notifications**
-  - Toast notification for add-to-cart, auth, and status messages
+- **UX**
+  - Toasts for quick feedback; responsive layouts and mobile nav
 
-- **Responsive design**
-  - Tablet layout (`<=1024px`)
-  - Mobile layout (`<=768px`)
-  - Small-phone adjustments (`<=480px`)
-  - Hamburger menu for navigation on small screens
+## Key JavaScript functions
 
-## Key JavaScript Functions
+| Area | Functions |
+|------|-----------|
+| Navigation | `showPage`, `persistCurrentPageInLocation`, `getPageFromLocation` |
+| Auth | `registerUser`, `loginUser`, `logoutUser`, `updateAuthUI`, `resetPassword` |
+| Catalog | `applyProductFilters`, `displayProducts`, `getProductImageSrc`, `getProductPictureSrc` |
+| Cart | `addToCart`, `displayCart`, `increaseQty`, `decreaseQty`, `removeFromCart` |
+| Checkout | `displayCheckout`, `updateShippingCost`, `updatePaymentFields`, `placeOrder` |
+| Orders | `displayOrders`, `generateOrderTimeline`, `cancelOrder` |
+| Email proof (demo) | `createEmailConfirmation`, `showEmailProofModal`, `buildOrderConfirmationEmailBody` |
+| Admin | `loginInventoryAdmin`, `renderInventoryPage`, `renderAdminOrdersPage` |
+| Persistence | `saveSiteDb`, `loadSiteDb`, `saveAppDb`, `loadAppDb`, `saveToLocalStorage`, `loadFromLocalStorage`, `saveAuthToLocalStorage`, `loadAuthFromLocalStorage` |
 
-- `showPage(pageName)`
-  - Handles page-section navigation
-  - Prevents logged-out access to cart/tracking
+## Data persistence (`localStorage` / `sessionStorage`)
 
-- `registerUser(event)`, `loginUser(event)`, `logoutUser()`
-  - Account lifecycle and session handling
+| Key / store | Purpose |
+|-------------|---------|
+| `techparts_site_db_v2` | Bundled snapshot: users, cart, orders, inventory, nested app snapshot |
+| `techparts_simple_db_v1` | App DB: `sentEmails`, `profilesByEmail`, password-reset metadata |
+| `cart` | Cart array (also mirrored in site DB) |
+| `orders` | Orders array (also mirrored in site DB) |
+| `users` | User accounts |
+| `currentUser` | Active session |
+| `inventoryByProductId` | Stock quantity per product id |
+| `inventoryAdminUnlocked` | Admin session flag |
+| `sessionStorage` `techparts_last_page` | Last SPA view (with URL `#page=…`) |
 
-- `updateAuthUI()`
-  - Updates account button, greeting, and protected nav visibility
+> Email “confirmations” are **not** sent over the internet; they are records in `appDb.sentEmails` for demo/school use.
 
-- `toggleMobileMenu()`, `closeMobileMenu()`
-  - Opens/closes hamburger menu for mobile
+## Assets
 
-- `applyProductFilters()`, `setCategoryFilter(category)`, `searchProducts()`
-  - Combined category + search product filtering
+- **`picture/`** — product images organized by folder (`GPU`, `CPU`, `RAM`, `STORAGE`, `MOBO`, `PSU`, `CASE`, `COOLER`). Filename usually matches the product title (see `PICTURE_REL_PATHS` and overrides in `index.html`).
 
-- `addToCart(productId)`, `displayCart()`, `increaseQty(index)`, `decreaseQty(index)`, `removeFromCart(index)`
-  - Cart operations and rendering
+## How to run
 
-- `displayCheckout()`, `updateShippingCost()`, `updateCheckoutTotals()`, `updatePaymentFields()`, `placeOrder()`
-  - Checkout processing and order creation
+1. Open `index.html` in a browser (or serve the folder with any static server).
+2. Use **Account** to register or log in.
+3. Browse **Products**, add items to **Cart**, then **Checkout** and place an order.
+4. Open **Track Orders** for status; open **Profile** for saved info and **Email confirmations**.
 
-- `displayOrders()`
-  - Renders tracking cards and timeline
+## Screenshots (template)
 
-- `saveToLocalStorage()`, `loadFromLocalStorage()`, `saveAuthToLocalStorage()`, `loadAuthFromLocalStorage()`
-  - Persistence for cart, orders, users, and current session
-
-## Data Persistence
-
-The app stores these keys in browser `localStorage`:
-
-- `users`
-- `currentUser`
-- `cart`
-- `orders`
-- `inventoryByProductId`
-
-## How to Run
-
-1. Open `index.html` in a browser.
-2. Register or login from **Account**.
-3. Browse products, search/filter, and add to cart.
-4. Proceed to checkout and place an order.
-5. View order status in **Track Orders**.
-
-## Screenshots (Template)
-
-Add your screenshots in a folder named `screenshots/` in this project, then update filenames below if needed.
+Add images under `screenshots/` and adjust paths if needed.
 
 ### Desktop
 
@@ -126,7 +175,7 @@ Add your screenshots in a folder named `screenshots/` in this project, then upda
 ![Mobile - Hamburger Menu](screenshots/mobile-menu.png)
 ![Mobile - Products](screenshots/mobile-products.png)
 
-### Account and Checkout Flow
+### Account and checkout
 
 ![Auth - Login/Register](screenshots/auth-modal.png)
 ![Cart Page](screenshots/cart-page.png)
@@ -135,8 +184,7 @@ Add your screenshots in a folder named `screenshots/` in this project, then upda
 
 ## Notes
 
-- This is a front-end school project and does not use a backend/database.
-- Login credentials are stored in plain text in `localStorage` for demo purposes only.
-- Payment processing (Card/GCash/COD) is simulated in the browser UI only.
-- Inventory stock quantity is stored in `localStorage` (`inventoryByProductId`) and is enforced during cart/checkout.
-- Inventory admin password is configured in `index.html` (see the `inventoryAdminPassword` constant).
+- Front-end / school-style project: **no real backend** or payment processor.
+- Passwords are stored in **plain text** in `localStorage` for demo only.
+- Card, GCash, PayMaya, and COD are **simulated** in the UI.
+- Inventory admin credentials are constants in `index.html` (`inventoryAdminUsername` / `inventoryAdminPassword`); change them before any public deployment.
