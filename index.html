@@ -332,8 +332,9 @@
         }
 
         .categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 1.5rem;
             margin-bottom: 3rem;
         }
@@ -346,6 +347,8 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, box-shadow 0.3s;
+            flex: 1 1 200px;
+            max-width: 320px;
         }
 
         .category-card:hover {
@@ -1234,8 +1237,14 @@
             }
 
             .categories {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
                 gap: 1rem;
+            }
+
+            .category-card {
+                max-width: 100%;
+                width: 100%;
             }
 
             .products-section {
@@ -1443,14 +1452,14 @@
                     <p>RAM Modules</p>
                 </div>
                 <div class="category-card">
-                    <div class="category-icon">⚙️</div>
-                    <h3>Motherboards</h3>
-                    <p>System Boards</p>
-                </div>
-                <div class="category-card">
                     <div class="category-icon">🌊</div>
                     <h3>Cooling</h3>
                     <p>CPU Coolers</p>
+                </div>
+                <div class="category-card">
+                    <div class="category-icon">⚙️</div>
+                    <h3>Motherboards</h3>
+                    <p>System Boards</p>
                 </div>
             </section>
         </div>
@@ -2410,10 +2419,10 @@
             {
                 id: 55,
                 name: 'MSI Mag Coreliquid 240R',
-                category: 'Motherboards',
-                description: 'Mid-range motherboard',
-                icon: '⚙️',
-                specs: ['LGA1700 Socket', 'PCIe 4.0 Support', 'WiFi 6 Enabled'],
+                category: 'Cooling',
+                description: '240mm AIO liquid cooler',
+                icon: '🌊',
+                specs: ['240mm Radiator', 'RGB Pump', 'Intel/AMD Mount'],
                 price: 5280,
                 oldPrice: null,
                 badge: null
@@ -2740,10 +2749,10 @@
             {
                 id: 85,
                 name: 'Cooler Master MasterBox CM694',
-                category: 'Cooling',
-                description: 'Basic air cooler',
-                icon: '🌊',
-                specs: ['Single Fan Design', 'Quiet Operation', 'Universal Mount'],
+                category: 'Cases',
+                description: 'Mid-tower ATX case',
+                icon: '📦',
+                specs: ['Mesh Front', '2x 120mm Fans', 'ATX Compatible'],
                 price: 680,
                 oldPrice: null,
                 badge: null
@@ -2882,7 +2891,7 @@
             },
             {
                 id: 98,
-                name: 'Intel Core Ulta v Pro',
+                name: 'Intel Core Ultra',
                 category: 'Processors',
                 description: 'Workstation processor',
                 icon: '⚡',
@@ -3150,7 +3159,7 @@
                 category: 'Cooling',
                 description: 'Premium AIO cooler',
                 icon: '🌊',
-                specs: ['360mm Radiator', 'RGB Control', 'Intel/AMD Mount'],
+                specs: ['240mm Radiator', 'RGB Control', 'Intel/AMD Mount'],
                 price: 2380,
                 oldPrice: null,
                 badge: null
@@ -3301,6 +3310,195 @@
             toggle.textContent = '☰';
         }
 
+        function buildPictureLookup(paths) {
+            const map = Object.create(null);
+            for (let i = 0; i < paths.length; i++) {
+                const rel = paths[i];
+                const slash = rel.indexOf('/');
+                if (slash <= 0) continue;
+                const folder = rel.slice(0, slash);
+                const file = rel.slice(slash + 1);
+                map[folder.toLowerCase() + '/' + file.toLowerCase()] = rel;
+            }
+            return map;
+        }
+
+        const PICTURE_REL_PATHS = [
+            'CASE/Be Quiet! Dark Base 901.jpg',
+            'CASE/Corsair 5000T RGB.jpg',
+            'CASE/Corsair 5000X RGB.jpg',
+            'CASE/Corsair iCUE 4000 Airflow RGB.jpg',
+            'CASE/Corsair iCUE 5000T.jpg',
+            'CASE/Corsair Obsidian 500D.jpg',
+            'CASE/Enthoo Luxe 2.jpg',
+            'CASE/Fractal Design Meshify 2.jpg',
+            'CASE/Fractal Design North.jpg',
+            'CASE/Lian Li LANCOOL 215.jpg',
+            'CASE/Lian Li O11 Dynamic EVO.jpg',
+            'CASE/Metallic Gear NEO Air.jpg',
+            'CASE/NZXT H7 Flow.jpg',
+            'CASE/Phanteks Eclipse P500A D-RGB.jpg',
+            'CASE/Thermaltake Level 20 HT.jpg',
+            'CASE/XPG INVADER.png',
+            'COOLER/Arctic Liquid Freezer II 420.jpg',
+            'COOLER/be quiet! Dark Rock Pro 4.jpg',
+            'COOLER/Cooler Master Hyper 212 EVO.jpg',
+            'COOLER/Corsair H150i Elite Capellix.jpg',
+            'COOLER/Corsair iCUE H100i PRO XT.jpg',
+            'COOLER/Corsair ML120 RGB.jpg',
+            'COOLER/Intel LGA1700 Tower Cooler.png',
+            'COOLER/Intel Stock Cooler.jpg',
+            'COOLER/Lian Li Galahad 360 RGB.jpg',
+            'COOLER/Noctua NH-D15.jpg',
+            'COOLER/NZXT Kraken X93 RGB.jpg',
+            'COOLER/NZXT Kraken Z63.jpg',
+            'COOLER/Scythe Mugen 5 Rev. B.jpg',
+            'COOLER/Thermalright Peerless Assassin 120 SE.jpg',
+            'CPU/AMD Threaripper.jpg',
+            'CPU/Intel core ULTRA.jpg',
+            'CPU/intel i3.jpg',
+            'CPU/intel i5.jpg',
+            'CPU/intel i7.jpg',
+            'CPU/intel i9.jpg',
+            'CPU/ryzen 3.jpg',
+            'CPU/ryzen 5.jpg',
+            'CPU/ryzen 7.jpg',
+            'CPU/ryzen 9.jpg',
+            'GPU/Arc A770.jpg',
+            'GPU/GTX 1080 Ti.png',
+            'GPU/RTX 2080 Ti.png',
+            'GPU/RTX 3060.jpg',
+            'GPU/RTX 4050.jpg',
+            'GPU/RTX 4060 Ti.png',
+            'GPU/RTX 4060.jpg',
+            'GPU/RTX 4070 Ti.jpg',
+            'GPU/RTX 4070.png',
+            'GPU/RTX 4080 super.png',
+            'GPU/RTX 4080.jpg',
+            'GPU/RTX 4090.jpg',
+            'GPU/RX 6700 XT.png',
+            'GPU/RX 6800 XT.jpg',
+            'GPU/RX 7900 XT.png',
+            'GPU/RX 7900 XTX.png',
+            'MOBO/ASRock H870 Pro RS.png',
+            'MOBO/ASRock X870E Steel Legend.jpg',
+            'MOBO/ASRock Z790 Steel Legend.jpg',
+            'MOBO/ASUS Prime Z790M Plus.png',
+            'MOBO/ASUS ProArt Z790 Creator WiFi.jpg',
+            'MOBO/ASUS ROG Strix B850E.jpg',
+            'MOBO/ASUS TUF Gaming Z790.png',
+            'MOBO/Biostar B850M Steel Legend.jpg',
+            'MOBO/Gigabyte B850 Aorus Elite.png',
+            'MOBO/Gigabyte Z790 Aorus Master.jpg',
+            'MOBO/MSI MAG X670E-I EDGE WIFI.jpg',
+            'MOBO/MSI MPG B850 Edge WiFi.png',
+            'MOBO/MSI MPG Z790I Edge WiFi.jpg',
+            'MOBO/MSI Z790 Tomahawk.jpg',
+            'MOBO/ROG STRIX Z790.png',
+            'PSU/Antec Earthwatts 750W.jpg',
+            'PSU/be quiet! Straight Power 12 CM 750W.jpg',
+            'PSU/Corsair RM1000x.jpg',
+            'PSU/Corsair RM650x.jpg',
+            'PSU/Corsair RM750x.jpg',
+            'PSU/Corsair RM850x.jpg',
+            'PSU/EVGA SuperNOVA 750 Gt.jpg',
+            'PSU/Gigabyte P850GM.jpg',
+            'PSU/MSI MPG A1000G PCIE5.jpg',
+            'PSU/NZXT HEPHAESTUS 1000W.jpg',
+            'PSU/Seasonic Focus 550W.jpg',
+            'PSU/Seasonic PRIME Titanium 1000W.jpg',
+            'PSU/Super Flower Leadex Platinum 1200W.jpg',
+            'PSU/Super Flower Leadex Titanium 850W.jpg',
+            'PSU/Thermaltake Smart Pro 850W.jpg',
+            'PSU/Thermaltake Toughpower GF1 650W.jpg',
+            'RAM/A-Data XPG Lancer 32GB.jpg',
+            'RAM/ADATA Prime Ultra 32GB.jpg',
+            'RAM/Corsair DDR5 64GB.jpg',
+            'RAM/Corsair Vengeance 32GB.jpg',
+            'RAM/Crucial DDR5 32GB.jpg',
+            'RAM/G.Skill Flare X5 64GB.jpg',
+            'RAM/G.Skill Trident Z5 32GB.jpg',
+            'RAM/GSkill DDR4 64GB.jpg',
+            'RAM/Kingston Fury Beast 32GB - Copy.jpg',
+            'RAM/Kingston Fury Beast 32GB.jpg',
+            'RAM/Kingston Fury Beast 64GB.jpg',
+            'RAM/OCZ Vector DDR4 16GB.jpg',
+            'RAM/Patriot Viper DDR5 32GB.jpg',
+            'RAM/Team Elite Plus 32GB.jpg',
+            'RAM/Team T-Force Dark 32GB.jpg',
+            'STORAGE/ADATA XPG S70 1TB.jpg',
+            'STORAGE/Crucial P2 1TB.jpg',
+            'STORAGE/Crucial P5 Plus 1TB.jpg',
+            'STORAGE/Gigabyte GP-GSM2NE8256GNTD 256GB.jpg',
+            'STORAGE/Intel Optane SSD 900P.jpg',
+            'STORAGE/Kingston A3000 2TB.jpg',
+            'STORAGE/Kioxia Exceria Plus 2TB.jpg',
+            'STORAGE/Sabrent Rocket 4 Max 2TB.jpg',
+            'STORAGE/Sabrent Rocket 4 Plus 1TB.jpg',
+            'STORAGE/Samsung 990 Pro 1TB.jpg',
+            'STORAGE/Samsung 990 Pro 2TB.jpg',
+            'STORAGE/Samsung 990 Pro 4TB.jpg',
+            'STORAGE/Seagate Game Drive 2TB.jpg',
+            'STORAGE/SK Hynix Platinum P41 2TB.jpg',
+            'STORAGE/Transcend 110Q 1TB.jpg',
+            'STORAGE/WD Black SN850X 4TB.jpg'
+        ];
+
+        const PICTURE_LOOKUP = buildPictureLookup(PICTURE_REL_PATHS);
+
+        const CATEGORY_TO_PICTURE_FOLDER = {
+            'GPUs': 'GPU',
+            'Processors': 'CPU',
+            'Memory': 'RAM',
+            'Storage': 'STORAGE',
+            'Motherboards': 'MOBO',
+            'Power Supply': 'PSU',
+            'Cases': 'CASE',
+            'Cooling': 'COOLER'
+        };
+
+        function pictureUrlFromRel(rel) {
+            return 'picture/' + rel.split('/').map(encodeURIComponent).join('/');
+        }
+
+        function findPictureInFolder(folder, fileWithExt) {
+            const key = folder.toLowerCase() + '/' + fileWithExt.toLowerCase();
+            const rel = PICTURE_LOOKUP[key];
+            return rel ? pictureUrlFromRel(rel) : null;
+        }
+
+        function tryPictureExtensions(folder, basenameNoExt) {
+            return findPictureInFolder(folder, basenameNoExt + '.jpg')
+                || findPictureInFolder(folder, basenameNoExt + '.png');
+        }
+
+        function resolveProcessorPictureBasename(name) {
+            if (/Threadripper/i.test(name)) return 'AMD Threaripper';
+            if (/Ryzen\s*9/i.test(name)) return 'ryzen 9';
+            if (/Ryzen\s*7/i.test(name)) return 'ryzen 7';
+            if (/Ryzen\s*5/i.test(name)) return 'ryzen 5';
+            if (/Ryzen\s*3/i.test(name)) return 'ryzen 3';
+            if (/Ultra|Ulta/i.test(name)) return 'Intel core ULTRA';
+            if (/i9-/i.test(name)) return 'intel i9';
+            if (/i7-/i.test(name)) return 'intel i7';
+            if (/i5-/i.test(name)) return 'intel i5';
+            if (/i3-/i.test(name)) return 'intel i3';
+            return null;
+        }
+
+        function getProductPictureSrc(product) {
+            const folder = CATEGORY_TO_PICTURE_FOLDER[product.category];
+            if (!folder) return null;
+
+            if (product.category === 'Processors') {
+                const base = resolveProcessorPictureBasename(product.name || '');
+                if (!base) return null;
+                return tryPictureExtensions('CPU', base);
+            }
+
+            return tryPictureExtensions(folder, (product.name || '').trim());
+        }
+
         function getProductIconByCategory(category) {
             const icons = {
                 'GPUs': '🖥️',
@@ -3359,6 +3557,12 @@
             return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         }
 
+        function getProductImageSrc(product) {
+            const pic = getProductPictureSrc(product);
+            if (pic) return pic;
+            return getProductThumbnailDataUri(product);
+        }
+
         function getUniqueCategories() {
             return ['All', ...new Set(products.map(product => product.category))];
         }
@@ -3401,8 +3605,9 @@
                         <div class="product-image">
                             <img
                                 class="product-thumb"
-                                src="${getProductThumbnailDataUri(product)}"
+                                src="${getProductImageSrc(product)}"
                                 alt="${product.name}"
+                                loading="lazy"
                             />
                         </div>
                         <div class="product-info">
