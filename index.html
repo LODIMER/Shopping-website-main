@@ -3277,15 +3277,56 @@
             passwordResets: []
         };
 
+        const KNOWN_PAGE_IDS = ['home', 'products', 'cart', 'checkout', 'inventory', 'admin-orders', 'profile', 'tracking'];
+
+        function isKnownPageId(pageName) {
+            return KNOWN_PAGE_IDS.includes(pageName);
+        }
+
+        function getPageFromLocation() {
+            const match = /^page=([a-z0-9-]+)$/i.exec(String(location.hash || '').replace(/^#/, ''));
+            if (match && isKnownPageId(match[1])) {
+                return match[1];
+            }
+            try {
+                const stored = sessionStorage.getItem('techparts_last_page');
+                if (stored && isKnownPageId(stored)) {
+                    return stored;
+                }
+            } catch (e) { /* ignore */ }
+            return 'home';
+        }
+
+        function persistCurrentPageInLocation(pageName) {
+            try {
+                sessionStorage.setItem('techparts_last_page', pageName);
+            } catch (e) { /* ignore */ }
+            const nextHash = '#page=' + pageName;
+            if (location.hash !== nextHash) {
+                try {
+                    history.replaceState(null, '', nextHash);
+                } catch (e) { /* file:// or restricted */ }
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadSiteDb();
             loadAppDb();
             loadInventoryDatabase();
-            applyProductFilters();
             loadFromLocalStorage();
             loadAuthFromLocalStorage();
             updateAuthUI();
+
+            showPage(getPageFromLocation());
+            applyProductFilters();
+
+            window.addEventListener('hashchange', function() {
+                const next = getPageFromLocation();
+                if (next !== currentPage) {
+                    showPage(next);
+                }
+            });
             
             // Setup search functionality
             const searchInput = document.getElementById('search-input');
@@ -4390,6 +4431,8 @@
             } else if (pageName === 'profile') {
                 renderProfile();
             }
+
+            persistCurrentPageInLocation(pageName);
 
             // Scroll to top
             window.scrollTo(0, 0);
