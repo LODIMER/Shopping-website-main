@@ -1550,6 +1550,7 @@
                             <select id="payment-method" onchange="updatePaymentFields()">
                                 <option value="card" selected>Card (Credit/Debit)</option>
                                 <option value="gcash">GCash</option>
+                                <option value="paymaya">PayMaya</option>
                                 <option value="cod">Cash on Delivery (COD)</option>
                             </select>
                         </div>
@@ -1579,6 +1580,17 @@
                             <div class="form-group">
                                 <label>GCash Name (Optional)</label>
                                 <input id="gcash-name" type="text" autocomplete="off" placeholder="Juan Dela Cruz">
+                            </div>
+                        </div>
+
+                        <div id="payment-paymaya-fields" style="display:none;">
+                            <div class="form-group">
+                                <label>PayMaya / Maya Mobile Number</label>
+                                <input id="paymaya-number" type="text" inputmode="tel" autocomplete="off" placeholder="09xxxxxxxxx">
+                            </div>
+                            <div class="form-group">
+                                <label>PayMaya Name (Optional)</label>
+                                <input id="paymaya-name" type="text" autocomplete="off" placeholder="Juan Dela Cruz">
                             </div>
                         </div>
 
@@ -3870,10 +3882,12 @@
 
             const cardFields = document.getElementById('payment-card-fields');
             const gcashFields = document.getElementById('payment-gcash-fields');
+            const paymayaFields = document.getElementById('payment-paymaya-fields');
             const codFields = document.getElementById('payment-cod-fields');
 
             if (cardFields) cardFields.style.display = method === 'card' ? 'block' : 'none';
             if (gcashFields) gcashFields.style.display = method === 'gcash' ? 'block' : 'none';
+            if (paymayaFields) paymayaFields.style.display = method === 'paymaya' ? 'block' : 'none';
             if (codFields) codFields.style.display = method === 'cod' ? 'block' : 'none';
 
             const setRequired = (id, required) => {
@@ -3889,6 +3903,9 @@
 
             setRequired('gcash-number', method === 'gcash');
             setRequired('gcash-name', false);
+
+            setRequired('paymaya-number', method === 'paymaya');
+            setRequired('paymaya-name', false);
         }
 
         // Place Order
@@ -3933,6 +3950,15 @@
                 }
                 const gcashName = (document.getElementById('gcash-name')?.value || '').trim();
                 paymentDetails = { method: 'gcash', mobile: gcashNumber, name: gcashName || null };
+                paymentStatus = 'paid';
+            } else if (paymentMethod === 'paymaya') {
+                const paymayaNumber = (document.getElementById('paymaya-number')?.value || '').trim();
+                if (!paymayaNumber) {
+                    alert('Please enter your PayMaya mobile number.');
+                    return;
+                }
+                const paymayaName = (document.getElementById('paymaya-name')?.value || '').trim();
+                paymentDetails = { method: 'paymaya', mobile: paymayaNumber, name: paymayaName || null };
                 paymentStatus = 'paid';
             } else if (paymentMethod === 'cod') {
                 paymentDetails = { method: 'cod' };
@@ -4287,6 +4313,7 @@
             const methods = {
                 'card': 'Card (Credit/Debit)',
                 'gcash': 'GCash',
+                'paymaya': 'PayMaya',
                 'cod': 'Cash on Delivery (COD)'
             };
             return methods[method] || (method ? method : 'N/A');
@@ -4501,7 +4528,7 @@
                     if (order.paymentMethod === 'card' && order.paymentDetails.last4) {
                         return ` • **** ${order.paymentDetails.last4}`;
                     }
-                    if (order.paymentMethod === 'gcash' && order.paymentDetails.mobile) {
+                    if ((order.paymentMethod === 'gcash' || order.paymentMethod === 'paymaya') && order.paymentDetails.mobile) {
                         return ` • ${order.paymentDetails.mobile}`;
                     }
                     return '';
