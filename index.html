@@ -3484,6 +3484,15 @@
                 || findPictureInFolder(folder, basenameNoExt + '.png');
         }
 
+        // When no file matches the product name, map to a representative image in picture/
+        const PRODUCT_PICTURE_OVERRIDE_BY_ID = {
+            3: 'RAM/Corsair DDR5 64GB.jpg',
+            39: 'RAM/Corsair DDR5 64GB.jpg',
+            55: 'COOLER/Corsair iCUE H100i PRO XT.jpg',
+            85: 'CASE/Metallic Gear NEO Air.jpg',
+            101: 'RAM/Kingston Fury Beast 32GB.jpg'
+        };
+
         function resolveProcessorPictureBasename(name) {
             if (/Threadripper/i.test(name)) return 'AMD Threaripper';
             if (/Ryzen\s*9/i.test(name)) return 'ryzen 9';
@@ -3499,6 +3508,18 @@
         }
 
         function getProductPictureSrc(product) {
+            const overrideRel = product && PRODUCT_PICTURE_OVERRIDE_BY_ID[product.id];
+            if (overrideRel) {
+                const slash = overrideRel.indexOf('/');
+                if (slash > 0) {
+                    const folder = overrideRel.slice(0, slash);
+                    const file = overrideRel.slice(slash + 1);
+                    const key = folder.toLowerCase() + '/' + file.toLowerCase();
+                    const canonical = PICTURE_LOOKUP[key];
+                    if (canonical) return pictureUrlFromRel(canonical);
+                }
+            }
+
             const folder = CATEGORY_TO_PICTURE_FOLDER[product.category];
             if (!folder) return null;
 
@@ -3856,10 +3877,10 @@
                     shippingCost = 0;
                     break;
                 case 'express':
-                    shippingCost = 15;
+                    shippingCost = 300;
                     break;
                 case 'overnight':
-                    shippingCost = 50;
+                    shippingCost = 1000;
                     break;
             }
             updateCheckoutTotals();
