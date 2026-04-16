@@ -965,6 +965,11 @@
             color: #856404;
         }
 
+        .status-order-confirmed {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+
         .status-shipped {
             background-color: #d1ecf1;
             color: #0c5460;
@@ -1678,7 +1683,23 @@
         <div class="container">
             <div class="inventory-admin-panel">
                 <h2 style="color: #16213e; margin-bottom: 0.25rem;">Inventory Admin</h2>
-                <p style="color: #5e6b7a; margin-bottom: 1rem;">Toggle stock status per product. Changes are saved in the local database.</p>
+                <p style="color: #5e6b7a; margin-bottom: 1rem;">Add new products, upload product pictures, update stock, or delete products. Changes are saved in the local database.</p>
+                <div style="margin-bottom: 1rem; padding: 0.9rem; border: 1px solid #dbe7f3; border-radius: 8px; background: #f8fbff;">
+                    <div style="font-weight: 700; color: #16213e; margin-bottom: 0.6rem;">Add New Product</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem;">
+                        <input id="new-product-name" type="text" placeholder="Product name">
+                        <input id="new-product-category" type="text" placeholder="Category (e.g. GPUs)">
+                        <input id="new-product-price" type="number" min="1" step="1" placeholder="Price">
+                        <input id="new-product-stock" type="number" min="0" step="1" placeholder="Initial stock">
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; margin-top: 0.6rem;">
+                        <input id="new-product-description" type="text" placeholder="Short description">
+                        <input id="new-product-specs" type="text" placeholder="Specs (comma separated)">
+                        <input id="new-product-badge" type="text" placeholder="Badge (optional)">
+                        <input id="new-product-image" type="file" accept="image/*">
+                    </div>
+                    <button class="inventory-toggle-btn" style="margin-top: 0.75rem; background:#00d4ff; color:#16213e;" onclick="addInventoryProduct()">Add Product</button>
+                </div>
                 <button class="inventory-toggle-btn" style="margin-bottom: 0.75rem; background:#00d4ff; color:#16213e;" onclick="showPage('admin-orders')">View Orders</button>
                 <button class="inventory-toggle-btn" style="margin-bottom: 0.75rem;" onclick="logoutInventoryAdmin()">Admin Logout</button>
                 <div id="inventory-list"></div>
@@ -3325,14 +3346,23 @@
         const inventoryAdminPassword = 'kenjhee';
         const inventoryAdminUsername = 'admin';
         const DEFAULT_IN_STOCK_QTY = 10;
+        const inventoryCustomProductsKey = 'inventoryCustomProducts';
+        const inventoryDeletedProductsKey = 'inventoryDeletedProductIds';
+        const inventoryCustomProductImagesKey = 'inventoryCustomProductImagesById';
         const appDbKey = 'techparts_simple_db_v1';
         let inventoryByProductId = {};
+        let customProducts = [];
+        let deletedProductIds = [];
+        let customProductImagesById = {};
         let siteDb = {
             users: [],
             currentUser: null,
             cart: [],
             orders: [],
             inventoryByProductId: {},
+            customProducts: [],
+            deletedProductIds: [],
+            customProductImagesById: {},
             appDb: null
         };
         let appDb = {
@@ -3378,6 +3408,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSiteDb();
             loadAppDb();
+            loadProductCatalogDatabase();
             loadInventoryDatabase();
             loadFromLocalStorage();
             loadAuthFromLocalStorage();
@@ -3697,6 +3728,9 @@
         }
 
         function getProductImageSrc(product) {
+            if (product && customProductImagesById[product.id]) {
+                return customProductImagesById[product.id];
+            }
             const pic = getProductPictureSrc(product);
             if (pic) return pic;
             return getProductThumbnailDataUri(product);
@@ -4255,7 +4289,7 @@
 
             let ordersHTML = '';
             orders.forEach((order, orderIndex) => {
-                const statusClass = 'status-' + order.status;
+                const statusClass = getOrderStatusBadgeClass(order);
                 
                 // Check if order is cancelled
                 if (order.status === 'cancelled') {
@@ -4446,6 +4480,19 @@
             return statuses[i];
         }
 
+        function getStatusClassFromTrackingStep(statusIndex) {
+            const map = ['status-order-confirmed', 'status-processing', 'status-shipped', 'status-out-for-delivery', 'status-delivered'];
+            const i = Math.min(Math.max(statusIndex, 0), map.length - 1);
+            return map[i];
+        }
+
+        function getOrderStatusBadgeClass(order) {
+            if (!order || order.status === 'cancelled') {
+                return 'status-cancelled';
+            }
+            return getStatusClassFromTrackingStep(getEffectiveTrackingStep(order));
+        }
+
         function getOrderDisplayStatus(order) {
             if (order.status === 'cancelled') {
                 return 'Cancelled';
@@ -4563,6 +4610,9 @@
             siteDb.cart = JSON.parse(JSON.stringify(cart));
             siteDb.orders = JSON.parse(JSON.stringify(orders));
             siteDb.inventoryByProductId = JSON.parse(JSON.stringify(inventoryByProductId));
+            siteDb.customProducts = JSON.parse(JSON.stringify(customProducts));
+            siteDb.deletedProductIds = JSON.parse(JSON.stringify(deletedProductIds));
+            siteDb.customProductImagesById = JSON.parse(JSON.stringify(customProductImagesById));
             siteDb.appDb = JSON.parse(JSON.stringify(appDb));
             localStorage.setItem(siteDbKey, JSON.stringify(siteDb));
         }
@@ -4578,10 +4628,66 @@
                     cart: parsed.cart || [],
                     orders: parsed.orders || [],
                     inventoryByProductId: parsed.inventoryByProductId || {},
+                    customProducts: parsed.customProducts || [],
+                    deletedProductIds: parsed.deletedProductIds || [],
+                    customProductImagesById: parsed.customProductImagesById || {},
                     appDb: parsed.appDb || null
                 };
             } catch (error) {
-                siteDb = { users: [], currentUser: null, cart: [], orders: [], inventoryByProductId: {}, appDb: null };
+                siteDb = { users: [], currentUser: null, cart: [], orders: [], inventoryByProductId: {}, customProducts: [], deletedProductIds: [], customProductImagesById: {}, appDb: null };
+            }
+        }
+
+        function saveProductCatalogDatabase() {
+            localStorage.setItem(inventoryCustomProductsKey, JSON.stringify(customProducts));
+            localStorage.setItem(inventoryDeletedProductsKey, JSON.stringify(deletedProductIds));
+            localStorage.setItem(inventoryCustomProductImagesKey, JSON.stringify(customProductImagesById));
+            saveSiteDb();
+        }
+
+        function loadProductCatalogDatabase() {
+            if (Array.isArray(siteDb.customProducts) && siteDb.customProducts.length) {
+                customProducts = JSON.parse(JSON.stringify(siteDb.customProducts));
+            }
+            if (Array.isArray(siteDb.deletedProductIds) && siteDb.deletedProductIds.length) {
+                deletedProductIds = JSON.parse(JSON.stringify(siteDb.deletedProductIds));
+            }
+            if (siteDb.customProductImagesById && typeof siteDb.customProductImagesById === 'object') {
+                customProductImagesById = JSON.parse(JSON.stringify(siteDb.customProductImagesById));
+            }
+
+            const savedCustomProducts = localStorage.getItem(inventoryCustomProductsKey);
+            const savedDeletedProducts = localStorage.getItem(inventoryDeletedProductsKey);
+            const savedCustomImages = localStorage.getItem(inventoryCustomProductImagesKey);
+
+            if (savedCustomProducts) {
+                try {
+                    customProducts = JSON.parse(savedCustomProducts) || [];
+                } catch (error) { customProducts = []; }
+            }
+            if (savedDeletedProducts) {
+                try {
+                    deletedProductIds = JSON.parse(savedDeletedProducts) || [];
+                } catch (error) { deletedProductIds = []; }
+            }
+            if (savedCustomImages) {
+                try {
+                    customProductImagesById = JSON.parse(savedCustomImages) || {};
+                } catch (error) { customProductImagesById = {}; }
+            }
+
+            customProducts.forEach(product => {
+                if (!products.some(p => p.id === product.id)) {
+                    products.push(product);
+                }
+            });
+
+            if (Array.isArray(deletedProductIds) && deletedProductIds.length) {
+                for (let i = products.length - 1; i >= 0; i--) {
+                    if (deletedProductIds.includes(products[i].id)) {
+                        products.splice(i, 1);
+                    }
+                }
             }
         }
 
@@ -4678,6 +4784,13 @@
                             >
                                 Update
                             </button>
+                            <button
+                                class="inventory-toggle-btn"
+                                style="background:#ff6b6b;"
+                                onclick="deleteInventoryProduct(${product.id})"
+                            >
+                                Delete
+                            </button>
                         </div>
                     </div>
                 `;
@@ -4715,9 +4828,8 @@
                     return '';
                 })();
 
-                const statusKey = order?.status === 'cancelled' ? 'cancelled' : 'processing';
                 const statusText = order?.status === 'cancelled' ? 'Cancelled' : getOrderDisplayStatus(order);
-                const statusClass = `order-status-badge status-${statusKey}`;
+                const statusClass = `order-status-badge ${getOrderStatusBadgeClass(order)}`;
 
                 const total = (typeof order.total === 'number') ? order.total : Number(order.total) || 0;
                 const itemsHtml = Array.isArray(order.items) && order.items.length
@@ -4785,6 +4897,11 @@
         }
 
         function toggleInventoryStock(productId) {
+            if (!isInventoryAdminUnlocked()) {
+                showNotification('Inventory admin login required.');
+                requestInventoryAdminAccess();
+                return;
+            }
             setProductStock(productId, !getProductStock(productId));
             renderInventoryPage();
             applyProductFilters();
@@ -4792,6 +4909,11 @@
         }
 
         function updateInventoryQty(productId) {
+            if (!isInventoryAdminUnlocked()) {
+                showNotification('Inventory admin login required.');
+                requestInventoryAdminAccess();
+                return;
+            }
             const input = document.getElementById(`inventory-qty-${productId}`);
             if (!input) return;
 
@@ -4800,6 +4922,122 @@
             renderInventoryPage();
             applyProductFilters();
             showNotification('Stock updated.');
+        }
+
+        function addInventoryProduct() {
+            if (!isInventoryAdminUnlocked()) {
+                showNotification('Inventory admin login required.');
+                requestInventoryAdminAccess();
+                return;
+            }
+            const nameEl = document.getElementById('new-product-name');
+            const categoryEl = document.getElementById('new-product-category');
+            const priceEl = document.getElementById('new-product-price');
+            const stockEl = document.getElementById('new-product-stock');
+            const descriptionEl = document.getElementById('new-product-description');
+            const specsEl = document.getElementById('new-product-specs');
+            const badgeEl = document.getElementById('new-product-badge');
+            const imageEl = document.getElementById('new-product-image');
+
+            const name = nameEl ? nameEl.value.trim() : '';
+            const category = categoryEl ? categoryEl.value.trim() : '';
+            const description = descriptionEl ? descriptionEl.value.trim() : '';
+            const badge = badgeEl ? badgeEl.value.trim() : '';
+            const price = Math.floor(Number(priceEl ? priceEl.value : 0));
+            const stock = Math.max(0, Math.floor(Number(stockEl ? stockEl.value : 0)));
+            const specs = (specsEl ? specsEl.value : '')
+                .split(',')
+                .map(spec => spec.trim())
+                .filter(Boolean);
+
+            if (!name || !category || !description || !Number.isFinite(price) || price <= 0) {
+                showNotification('Please complete product name, category, description, and valid price.');
+                return;
+            }
+
+            const nextId = products.reduce((maxId, product) => Math.max(maxId, Number(product.id) || 0), 0) + 1;
+            const product = {
+                id: nextId,
+                name: name,
+                category: category,
+                description: description,
+                icon: getProductIconByCategory(category),
+                specs: specs.length ? specs : ['No specs listed'],
+                price: price,
+                oldPrice: null,
+                badge: badge || null
+            };
+
+            products.push(product);
+            customProducts.push(product);
+            setProductStockQty(product.id, stock);
+
+            const selectedFile = imageEl && imageEl.files && imageEl.files[0] ? imageEl.files[0] : null;
+            if (!selectedFile) {
+                saveProductCatalogDatabase();
+                clearInventoryProductForm();
+                renderInventoryPage();
+                applyProductFilters();
+                showNotification('Product added.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (event && event.target && typeof event.target.result === 'string') {
+                    customProductImagesById[product.id] = event.target.result;
+                }
+                saveProductCatalogDatabase();
+                clearInventoryProductForm();
+                renderInventoryPage();
+                applyProductFilters();
+                showNotification('Product and image added.');
+            };
+            reader.onerror = function() {
+                saveProductCatalogDatabase();
+                clearInventoryProductForm();
+                renderInventoryPage();
+                applyProductFilters();
+                showNotification('Product added, but image upload failed.');
+            };
+            reader.readAsDataURL(selectedFile);
+        }
+
+        function clearInventoryProductForm() {
+            const ids = ['new-product-name', 'new-product-category', 'new-product-price', 'new-product-stock', 'new-product-description', 'new-product-specs', 'new-product-badge', 'new-product-image'];
+            ids.forEach(id => {
+                const element = document.getElementById(id);
+                if (!element) return;
+                element.value = '';
+            });
+        }
+
+        function deleteInventoryProduct(productId) {
+            if (!isInventoryAdminUnlocked()) {
+                showNotification('Inventory admin login required.');
+                requestInventoryAdminAccess();
+                return;
+            }
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex === -1) return;
+
+            const productName = products[productIndex].name;
+            const confirmed = confirm(`Delete ${productName} from inventory?`);
+            if (!confirmed) return;
+
+            products.splice(productIndex, 1);
+            customProducts = customProducts.filter(p => p.id !== productId);
+            if (!deletedProductIds.includes(productId)) {
+                deletedProductIds.push(productId);
+            }
+            delete customProductImagesById[productId];
+            delete inventoryByProductId[productId];
+
+            saveInventoryDatabase();
+            saveProductCatalogDatabase();
+            renderInventoryPage();
+            applyProductFilters();
+            showNotification('Product deleted.');
         }
 
         function isInventoryAdminUnlocked() {
