@@ -113,8 +113,9 @@ flowchart LR
   - Cancel while in transit; page persistence via **`#page=…`** and `sessionStorage`
 
 - **Inventory (admin)**
-  - Separate admin login; per-product stock; stock enforced at add-to-cart and checkout
-  - Admin-only product add/delete with optional uploaded product image
+  - Separate admin login required for all inventory changes
+  - Per-product stock is enforced at add-to-cart and checkout
+  - Admin can add products, delete products, and upload product images
   - Admin orders: buyers, payments, and **tracking stage** dropdown (customer-visible on Track Orders)
 
 - **UX**
@@ -172,15 +173,14 @@ For each product p:
 INPUT: product { id, name, category }
 OUTPUT: image URL string
 
-1. If customProductImagesById[product.id] exists → return that stored data URL.
-2. If PRODUCT_PICTURE_OVERRIDE_BY_ID[product.id] exists:
-     Resolve path via PICTURE_LOOKUP (case-insensitive folder/file key) → return 'picture/' + encoded segments.
-3. folder ← CATEGORY_TO_PICTURE_FOLDER[product.category] (e.g. GPUs → GPU).
-4. If category = 'Processors':
+1. If `customProductImagesById[product.id]` exists → return uploaded image.
+2. Else if `PRODUCT_PICTURE_OVERRIDE_BY_ID[product.id]` exists → resolve path via `PICTURE_LOOKUP`.
+3. Else set `folder ← CATEGORY_TO_PICTURE_FOLDER[product.category]`.
+4. If category = `Processors`:
      base ← resolveProcessorPictureBasename(name)  // Threadripper → AMD Threaripper file, i5 → intel i5, etc.
      Try base + '.jpg' then '.png' in PICTURE_LOOKUP → return URL if found.
-5. Else try product.name + '.jpg' then '.png' in folder via PICTURE_LOOKUP.
-6. If no file → return getProductThumbnailDataUri(product) (SVG data URI with initials).
+5. Else try `product.name + '.jpg'` then `.png` inside the category folder.
+6. If nothing matches → return generated SVG thumbnail.
 ```
 
 **Picture index:** `PICTURE_REL_PATHS` is normalized into `PICTURE_LOOKUP[lowercase(folder + '/' + filename)] → canonical relative path`.
@@ -310,14 +310,10 @@ OUTPUT: product added to catalog; inventory and localStorage updated
 1. If admin is not unlocked → notify, open admin login modal, stop.
 2. Validate required fields: name, category, description, positive price.
 3. nextId ← max(products[].id) + 1.
-4. Build product object { id, name, category, description, icon, specs[], price, oldPrice: null, badge? }.
-5. Append product to products[] and customProducts[].
-6. setProductStockQty(product.id, initialStock).
-7. If no image file:
-     saveProductCatalogDatabase(); clear form; refresh inventory + product grid; notify success.
-8. Else read file with FileReader.readAsDataURL(...).
-9. On success: customProductImagesById[product.id] ← data URL.
-10. saveProductCatalogDatabase(); clear form; refresh inventory + product grid; notify success.
+4. Build product object and append it to products[] and customProducts[].
+5. Set initial stock quantity.
+6. If an image was uploaded → read it as data URL and store it in customProductImagesById[product.id].
+7. Save catalog data, clear the form, refresh inventory/products, notify success.
 ```
 
 ---
@@ -334,12 +330,10 @@ OUTPUT: product removed from visible catalog; persistence updated
 1. If admin is not unlocked → notify, open admin login modal, stop.
 2. Find product by id; if missing → stop.
 3. Ask for confirmation; if cancelled → stop.
-4. Remove product from products[].
-5. Remove product from customProducts[].
-6. If productId not already in deletedProductIds[] → append it.
-7. Delete customProductImagesById[productId].
-8. Delete inventoryByProductId[productId].
-9. saveInventoryDatabase(); saveProductCatalogDatabase(); refresh inventory + product grid.
+4. Remove product from products[] and customProducts[].
+5. Add productId to deletedProductIds[] if not already present.
+6. Remove its uploaded image and stock entry.
+7. Save inventory/catalog data and refresh the UI.
 ```
 
 ## Key JavaScript functions
