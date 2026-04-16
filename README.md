@@ -18,6 +18,7 @@ flowchart TB
         D --> Products[Products — filters, search, images]
         Home --> Products
         Products --> PImg[Images from picture/ GPU, CPU, RAM, …]
+        Products --> UImg[Custom uploaded product image if admin added one]
     end
 
     subgraph auth["3. Account"]
@@ -58,8 +59,11 @@ flowchart TB
         Inv --> Gate{Admin unlocked?}
         Gate -->|No| ADM[Admin login modal]
         Gate -->|Yes| Stk[Edit stock per product]
+        Gate -->|Yes| AddDel[Add product / upload image / delete product]
         ADM --> Stk
+        ADM --> AddDel
         Stk --> AO[View orders — buyer & payment info]
+        AddDel --> AO
     end
 
     style entry fill:#f8fafc
@@ -95,7 +99,7 @@ flowchart LR
 
 - **Product catalog**
   - Large JS product list (GPUs, CPUs, RAM, storage, motherboards, PSUs, cases, cooling)
-  - **Images** from `picture/` (with tier-based CPU photos and a few ID overrides for missing filenames)
+  - **Images** from `picture/` or from admin-uploaded image data stored in `localStorage`
   - Category chips and live search (search can jump to Products)
 
 - **Cart & checkout**
@@ -110,6 +114,7 @@ flowchart LR
 
 - **Inventory (admin)**
   - Separate admin login; per-product stock; stock enforced at add-to-cart and checkout
+  - Admin-only product add/delete with optional uploaded product image
   - Admin orders: buyers, payments, and **tracking stage** dropdown (customer-visible on Track Orders)
 
 - **UX**
@@ -161,20 +166,21 @@ For each product p:
 
 ### A3. Product image URL resolution
 
-**Goal:** Map a catalog item to `picture/<folder>/<file>` or fall back to a generated SVG thumbnail.
+**Goal:** Resolve a product image from admin upload, bundled `picture/` assets, or a generated SVG thumbnail.
 
 ```
 INPUT: product { id, name, category }
 OUTPUT: image URL string
 
-1. If PRODUCT_PICTURE_OVERRIDE_BY_ID[product.id] exists:
+1. If customProductImagesById[product.id] exists → return that stored data URL.
+2. If PRODUCT_PICTURE_OVERRIDE_BY_ID[product.id] exists:
      Resolve path via PICTURE_LOOKUP (case-insensitive folder/file key) → return 'picture/' + encoded segments.
-2. folder ← CATEGORY_TO_PICTURE_FOLDER[product.category] (e.g. GPUs → GPU).
-3. If category = 'Processors':
+3. folder ← CATEGORY_TO_PICTURE_FOLDER[product.category] (e.g. GPUs → GPU).
+4. If category = 'Processors':
      base ← resolveProcessorPictureBasename(name)  // Threadripper → AMD Threaripper file, i5 → intel i5, etc.
      Try base + '.jpg' then '.png' in PICTURE_LOOKUP → return URL if found.
-4. Else try product.name + '.jpg' then '.png' in folder via PICTURE_LOOKUP.
-5. If no file → return getProductThumbnailDataUri(product) (SVG data URI with initials).
+5. Else try product.name + '.jpg' then '.png' in folder via PICTURE_LOOKUP.
+6. If no file → return getProductThumbnailDataUri(product) (SVG data URI with initials).
 ```
 
 **Picture index:** `PICTURE_REL_PATHS` is normalized into `PICTURE_LOOKUP[lowercase(folder + '/' + filename)] → canonical relative path`.
@@ -290,6 +296,52 @@ INPUT: orderIndex, orders[]
 4. saveInventoryDatabase(); saveToLocalStorage(); refresh tracking UI.
 ```
 
+---
+
+### A10. Admin add product to inventory
+
+**Goal:** Only unlocked inventory admin can create a product, set stock, and optionally attach an uploaded image.
+
+```
+INPUT: inventory form fields, optional image file
+PRE: inventory admin session unlocked
+OUTPUT: product added to catalog; inventory and localStorage updated
+
+1. If admin is not unlocked → notify, open admin login modal, stop.
+2. Validate required fields: name, category, description, positive price.
+3. nextId ← max(products[].id) + 1.
+4. Build product object { id, name, category, description, icon, specs[], price, oldPrice: null, badge? }.
+5. Append product to products[] and customProducts[].
+6. setProductStockQty(product.id, initialStock).
+7. If no image file:
+     saveProductCatalogDatabase(); clear form; refresh inventory + product grid; notify success.
+8. Else read file with FileReader.readAsDataURL(...).
+9. On success: customProductImagesById[product.id] ← data URL.
+10. saveProductCatalogDatabase(); clear form; refresh inventory + product grid; notify success.
+```
+
+---
+
+### A11. Admin delete product from inventory
+
+**Goal:** Only unlocked inventory admin can remove a product and persist that deletion.
+
+```
+INPUT: productId
+PRE: inventory admin session unlocked
+OUTPUT: product removed from visible catalog; persistence updated
+
+1. If admin is not unlocked → notify, open admin login modal, stop.
+2. Find product by id; if missing → stop.
+3. Ask for confirmation; if cancelled → stop.
+4. Remove product from products[].
+5. Remove product from customProducts[].
+6. If productId not already in deletedProductIds[] → append it.
+7. Delete customProductImagesById[productId].
+8. Delete inventoryByProductId[productId].
+9. saveInventoryDatabase(); saveProductCatalogDatabase(); refresh inventory + product grid.
+```
+
 ## Key JavaScript functions
 
 | Area | Functions |
@@ -301,14 +353,14 @@ INPUT: orderIndex, orders[]
 | Checkout | `displayCheckout`, `updateShippingCost`, `updatePaymentFields`, `placeOrder` |
 | Orders | `displayOrders`, `generateOrderTimeline`, `cancelOrder` |
 | Email proof (demo) | `createEmailConfirmation`, `showEmailProofModal`, `buildOrderConfirmationEmailBody` |
-| Admin | `loginInventoryAdmin`, `renderInventoryPage`, `renderAdminOrdersPage` |
+| Admin | `loginInventoryAdmin`, `renderInventoryPage`, `renderAdminOrdersPage`, `addInventoryProduct`, `deleteInventoryProduct`, `updateInventoryQty` |
 | Persistence | `saveSiteDb`, `loadSiteDb`, `saveAppDb`, `loadAppDb`, `saveToLocalStorage`, `loadFromLocalStorage`, `saveAuthToLocalStorage`, `loadAuthFromLocalStorage` |
 
 ## Data persistence (`localStorage` / `sessionStorage`)
 
 | Key / store | Purpose |
 |-------------|---------|
-| `techparts_site_db_v2` | Bundled snapshot: users, cart, orders, inventory, nested app snapshot |
+| `techparts_site_db_v2` | Bundled snapshot: users, cart, orders, inventory, custom products, deleted product ids, uploaded image map, nested app snapshot |
 | `techparts_simple_db_v1` | App DB: `sentEmails`, `profilesByEmail`, password-reset metadata |
 | `cart` | Cart array (also mirrored in site DB) |
 | `orders` | Orders array (also mirrored in site DB) |
@@ -316,6 +368,9 @@ INPUT: orderIndex, orders[]
 | `currentUser` | Active session |
 | `inventoryByProductId` | Stock quantity per product id |
 | `inventoryAdminUnlocked` | Admin session flag |
+| `inventoryCustomProducts` | Admin-added products persisted outside the base hardcoded catalog |
+| `inventoryDeletedProductIds` | Product ids hidden/removed by admin |
+| `inventoryCustomProductImagesById` | Uploaded product image data URLs keyed by product id |
 | `sessionStorage` `techparts_last_page` | Last SPA view (with URL `#page=…`) |
 
 > Email “confirmations” are **not** sent over the internet; they are records in `appDb.sentEmails` for demo/school use.
